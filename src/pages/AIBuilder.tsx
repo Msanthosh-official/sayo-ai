@@ -129,7 +129,7 @@ export default function AIBuilder() {
             {!isGenerating && generated && viewMode === "preview" && (
               <motion.div key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">
                 <iframe
-                  srcDoc={sampleHTML}
+                  srcDoc={generatedHTML!}
                   className="w-full h-full border-0"
                   title="Preview"
                   sandbox="allow-scripts"
