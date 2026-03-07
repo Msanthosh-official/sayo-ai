@@ -23,9 +23,11 @@ export default function AIBuilder() {
   };
 
   const handleReset = () => {
-    setGenerated(false);
+    setGeneratedHTML(null);
     setPrompt("");
   };
+
+  const generated = generatedHTML !== null;
 
   return (
     <div className="max-w-7xl mx-auto h-[calc(100vh-5rem)] flex flex-col gap-4">
