@@ -1,54 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Play, Globe, Code2, Eye, Loader2, Copy, RotateCcw } from "lucide-react";
-
-const sampleHTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
-    body { background: #fff5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .container { text-align: center; padding: 2rem; }
-    h1 { font-size: 2.5rem; font-weight: 700; color: #dc2626; margin-bottom: 1rem; }
-    p { color: #6b7280; font-size: 1.1rem; max-width: 500px; margin: 0 auto 2rem; }
-    .btn { padding: 0.75rem 2rem; background: linear-gradient(135deg, #dc2626, #f59e0b); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; }
-    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; }
-    .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-    .card h3 { color: #dc2626; font-size: 1rem; margin-bottom: 0.5rem; }
-    .card p { font-size: 0.85rem; color: #9ca3af; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>✨ Your AI-Generated Website</h1>
-    <p>This is a preview of your generated website. Customize it further or deploy it instantly.</p>
-    <button class="btn">Get Started</button>
-    <div class="cards">
-      <div class="card"><h3>Fast</h3><p>Built in seconds</p></div>
-      <div class="card"><h3>Modern</h3><p>Clean design</p></div>
-      <div class="card"><h3>Responsive</h3><p>Works everywhere</p></div>
-    </div>
-  </div>
-</body>
-</html>`;
+import { generateHTMLFromPrompt } from "@/lib/generateHTML";
 
 export default function AIBuilder() {
   const location = useLocation();
   const [prompt, setPrompt] = useState((location.state as any)?.prompt || "");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generated, setGenerated] = useState(false);
+  const [generatedHTML, setGeneratedHTML] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
     setIsGenerating(true);
-    setGenerated(false);
+    setGeneratedHTML(null);
     setTimeout(() => {
+      setGeneratedHTML(generateHTMLFromPrompt(prompt));
       setIsGenerating(false);
-      setGenerated(true);
     }, 2500);
   };
 
