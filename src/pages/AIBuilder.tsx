@@ -1,61 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Play, Globe, Code2, Eye, Loader2, Copy, RotateCcw } from "lucide-react";
-
-const sampleHTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
-    body { background: #fff5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .container { text-align: center; padding: 2rem; }
-    h1 { font-size: 2.5rem; font-weight: 700; color: #dc2626; margin-bottom: 1rem; }
-    p { color: #6b7280; font-size: 1.1rem; max-width: 500px; margin: 0 auto 2rem; }
-    .btn { padding: 0.75rem 2rem; background: linear-gradient(135deg, #dc2626, #f59e0b); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; }
-    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; }
-    .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-    .card h3 { color: #dc2626; font-size: 1rem; margin-bottom: 0.5rem; }
-    .card p { font-size: 0.85rem; color: #9ca3af; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>✨ Your AI-Generated Website</h1>
-    <p>This is a preview of your generated website. Customize it further or deploy it instantly.</p>
-    <button class="btn">Get Started</button>
-    <div class="cards">
-      <div class="card"><h3>Fast</h3><p>Built in seconds</p></div>
-      <div class="card"><h3>Modern</h3><p>Clean design</p></div>
-      <div class="card"><h3>Responsive</h3><p>Works everywhere</p></div>
-    </div>
-  </div>
-</body>
-</html>`;
+import { generateHTMLFromPrompt } from "@/lib/generateHTML";
 
 export default function AIBuilder() {
   const location = useLocation();
   const [prompt, setPrompt] = useState((location.state as any)?.prompt || "");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generated, setGenerated] = useState(false);
+  const [generatedHTML, setGeneratedHTML] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
     setIsGenerating(true);
-    setGenerated(false);
+    setGeneratedHTML(null);
     setTimeout(() => {
+      setGeneratedHTML(generateHTMLFromPrompt(prompt));
       setIsGenerating(false);
-      setGenerated(true);
     }, 2500);
   };
 
   const handleReset = () => {
-    setGenerated(false);
+    setGeneratedHTML(null);
     setPrompt("");
   };
+
+  const generated = generatedHTML !== null;
 
   return (
     <div className="max-w-7xl mx-auto h-[calc(100vh-5rem)] flex flex-col gap-4">
@@ -157,7 +129,7 @@ export default function AIBuilder() {
             {!isGenerating && generated && viewMode === "preview" && (
               <motion.div key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">
                 <iframe
-                  srcDoc={sampleHTML}
+                  srcDoc={generatedHTML!}
                   className="w-full h-full border-0"
                   title="Preview"
                   sandbox="allow-scripts"
@@ -168,12 +140,12 @@ export default function AIBuilder() {
             {!isGenerating && generated && viewMode === "code" && (
               <motion.div key="code" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full overflow-auto p-4">
                 <div className="flex justify-end mb-2">
-                  <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText(sampleHTML)}>
+                  <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText(generatedHTML!)}>
                     <Copy className="h-3.5 w-3.5 mr-1" /> Copy
                   </Button>
                 </div>
                 <pre className="text-xs text-muted-foreground bg-muted p-4 rounded-xl overflow-auto font-mono">
-                  {sampleHTML}
+                  {generatedHTML}
                 </pre>
               </motion.div>
             )}
