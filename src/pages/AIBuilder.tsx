@@ -145,7 +145,7 @@ export default function AIBuilder() {
                   </Button>
                 </div>
                 <pre className="text-xs text-muted-foreground bg-muted p-4 rounded-xl overflow-auto font-mono">
-                  {sampleHTML}
+                  {generatedHTML}
                 </pre>
               </motion.div>
             )}
