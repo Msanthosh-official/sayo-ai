@@ -140,7 +140,7 @@ export default function AIBuilder() {
             {!isGenerating && generated && viewMode === "code" && (
               <motion.div key="code" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full overflow-auto p-4">
                 <div className="flex justify-end mb-2">
-                  <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText(sampleHTML)}>
+                  <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText(generatedHTML!)}>
                     <Copy className="h-3.5 w-3.5 mr-1" /> Copy
                   </Button>
                 </div>
