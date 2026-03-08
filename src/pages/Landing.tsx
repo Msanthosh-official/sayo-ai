@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Zap, Code2, Rocket, GitBranch, Eye, Globe, ArrowRight, Github, Twitter, Sparkles, Check } from "lucide-react";
+import { Zap, Code2, Rocket, GitBranch, Eye, Globe, ArrowRight, Github, Twitter, Sparkles, Check, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@/hooks/use-theme";
 
 const features = [
   { icon: Sparkles, title: "AI-Powered Generation", desc: "Describe your website in plain English and watch it come to life instantly." },
@@ -22,6 +23,7 @@ const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0 } };
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,8 +41,11 @@ export default function Landing() {
             <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>Login</Button>
-            <Button variant="hero" size="sm" onClick={() => navigate("/dashboard")}>Start Building <ArrowRight className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} title="Toggle theme">
+              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>Login</Button>
+            <Button variant="hero" size="sm" onClick={() => navigate("/signup")}>Start Building <ArrowRight className="h-4 w-4" /></Button>
           </div>
         </div>
       </nav>
@@ -63,7 +68,7 @@ export default function Landing() {
               <Button variant="hero" size="lg" className="px-8 py-6 text-lg" onClick={() => navigate("/dashboard")}>
                 Start Building <ArrowRight className="h-5 w-5" />
               </Button>
-              <Button variant="hero-outline" size="lg" className="px-8 py-6 text-lg" onClick={() => navigate("/dashboard")}>
+              <Button variant="hero-outline" size="lg" className="px-8 py-6 text-lg" onClick={() => navigate("/login")}>
                 Login
               </Button>
             </div>
@@ -163,7 +168,7 @@ export default function Landing() {
                     </li>
                   ))}
                 </ul>
-                <Button variant={plan.popular ? "hero" : "outline"} className="w-full" onClick={() => navigate("/dashboard")}>
+                <Button variant={plan.popular ? "hero" : "outline"} className="w-full" onClick={() => navigate("/signup")}>
                   {plan.cta}
                 </Button>
               </motion.div>
