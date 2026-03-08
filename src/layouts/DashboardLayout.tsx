@@ -2,9 +2,12 @@ import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Button } from "@/components/ui/button";
-import { Bell, Crown } from "lucide-react";
+import { Bell, Crown, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 
 export default function DashboardLayout() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -13,6 +16,9 @@ export default function DashboardLayout() {
           <header className="h-14 flex items-center justify-between border-b border-border px-4 bg-card">
             <SidebarTrigger className="ml-1" />
             <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={toggleTheme} title="Toggle theme">
+                {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </Button>
               <Button variant="outline" size="sm">
                 <Crown className="h-4 w-4 mr-1 text-secondary" /> Upgrade
               </Button>

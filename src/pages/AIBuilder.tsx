@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Play, Globe, Code2, Eye, Loader2, Copy, RotateCcw } from "lucide-react";
+import { Sparkles, Play, Globe, Code2, Eye, Loader2, Copy, RotateCcw, Check, ExternalLink } from "lucide-react";
 import { generateHTMLFromPrompt } from "@/lib/generateHTML";
+import { toast } from "sonner";
 
 export default function AIBuilder() {
   const location = useLocation();
@@ -11,11 +12,17 @@ export default function AIBuilder() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedHTML, setGeneratedHTML] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
+  const [isPublished, setIsPublished] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
     setIsGenerating(true);
     setGeneratedHTML(null);
+    setIsPublished(false);
+    setPublishedUrl(null);
     setTimeout(() => {
       setGeneratedHTML(generateHTMLFromPrompt(prompt));
       setIsGenerating(false);
@@ -25,6 +32,35 @@ export default function AIBuilder() {
   const handleReset = () => {
     setGeneratedHTML(null);
     setPrompt("");
+    setIsPublished(false);
+    setPublishedUrl(null);
+  };
+
+  const handlePublish = () => {
+    if (!generatedHTML) return;
+    setIsPublishing(true);
+    setTimeout(() => {
+      const slug = prompt.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 30);
+      const url = `https://${slug}.sayo.ai`;
+      setPublishedUrl(url);
+      setIsPublished(true);
+      setIsPublishing(false);
+      toast.success("Site published successfully!", {
+        description: url,
+        action: {
+          label: "Copy URL",
+          onClick: () => navigator.clipboard.writeText(url),
+        },
+      });
+    }, 2000);
+  };
+
+  const handleCopy = () => {
+    if (!generatedHTML) return;
+    navigator.clipboard.writeText(generatedHTML);
+    setCopied(true);
+    toast.success("Code copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const generated = generatedHTML !== null;
@@ -72,7 +108,8 @@ export default function AIBuilder() {
             </div>
             {generated && (
               <div className="ml-3 flex items-center gap-1 text-xs text-muted-foreground bg-muted rounded-md px-2 py-1">
-                <Globe className="h-3 w-3" /> preview.sayo.ai
+                <Globe className="h-3 w-3" />
+                {publishedUrl || "preview.sayo.ai"}
               </div>
             )}
           </div>
@@ -92,9 +129,25 @@ export default function AIBuilder() {
               >
                 <Code2 className="h-3.5 w-3.5 mr-1" /> Code
               </Button>
-              <Button variant="hero" size="sm">
-                <Globe className="h-3.5 w-3.5 mr-1" /> Publish
-              </Button>
+              {isPublished ? (
+                <Button variant="outline" size="sm" onClick={() => {
+                  if (publishedUrl) {
+                    navigator.clipboard.writeText(publishedUrl);
+                    toast.success("URL copied!");
+                  }
+                }}>
+                  <Check className="h-3.5 w-3.5 mr-1 text-green-500" /> Published
+                  <ExternalLink className="h-3 w-3 ml-1" />
+                </Button>
+              ) : (
+                <Button variant="hero" size="sm" onClick={handlePublish} disabled={isPublishing}>
+                  {isPublishing ? (
+                    <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> Publishing...</>
+                  ) : (
+                    <><Globe className="h-3.5 w-3.5 mr-1" /> Publish</>
+                  )}
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -140,8 +193,9 @@ export default function AIBuilder() {
             {!isGenerating && generated && viewMode === "code" && (
               <motion.div key="code" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full overflow-auto p-4">
                 <div className="flex justify-end mb-2">
-                  <Button variant="ghost" size="sm" onClick={() => navigator.clipboard.writeText(generatedHTML!)}>
-                    <Copy className="h-3.5 w-3.5 mr-1" /> Copy
+                  <Button variant="ghost" size="sm" onClick={handleCopy}>
+                    {copied ? <Check className="h-3.5 w-3.5 mr-1 text-green-500" /> : <Copy className="h-3.5 w-3.5 mr-1" />}
+                    {copied ? "Copied!" : "Copy"}
                   </Button>
                 </div>
                 <pre className="text-xs text-muted-foreground bg-muted p-4 rounded-xl overflow-auto font-mono">
