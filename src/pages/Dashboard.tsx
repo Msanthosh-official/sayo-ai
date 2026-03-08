@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Plus, Eye, GitBranch, Rocket, Sparkles, ArrowRight } from "lucide-react";
+import { Plus, Eye, GitBranch, Rocket, Sparkles, ArrowRight, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
