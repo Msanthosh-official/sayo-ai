@@ -14,11 +14,39 @@ const mockProjects = [
 export default function Dashboard() {
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
+  const [isLoggedIn] = useState(false); // mock auth state
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Signup Banner */}
+      {!isLoggedIn && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-primary/20 bg-primary/5 p-5 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl gradient-hero flex items-center justify-center">
+              <LogIn className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h3 className="font-display font-semibold text-foreground">Sign up to save your projects</h3>
+              <p className="text-sm text-muted-foreground">Create an account to access all features and deploy your sites.</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/login")}>
+              Log In
+            </Button>
+            <Button variant="hero" size="sm" onClick={() => navigate("/signup")}>
+              Sign Up <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Welcome */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
         <h1 className="font-display text-3xl font-bold text-foreground">Welcome back 👋</h1>
         <p className="text-muted-foreground mt-1">Build something amazing with AI today.</p>
       </motion.div>
