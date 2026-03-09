@@ -1,302 +1,671 @@
-// Advanced AI-quality HTML generator — produces stunning, modern previews
+// Dynamic prompt-based HTML generator — builds unique sites from any prompt
 
-interface TemplateConfig {
-  title: string;
-  subtitle: string;
-  navBrand: string;
+interface ParsedPrompt {
+  brandName: string;
+  tagline: string;
+  description: string;
+  type: string;
+  colorScheme: { bg: string; text: string; muted: string; accent: string; accentGradient: string; card: string; border: string; };
+  font: { url: string; family: string; display?: string; displayUrl?: string; };
+  sections: string[];
+  features: { title: string; desc: string; emoji: string }[];
   navLinks: string[];
-  bgColor: string;
-  textColor: string;
-  mutedColor: string;
-  accentColor: string;
-  accentGradient: string;
-  cardBg: string;
-  borderColor: string;
-  heroExtra?: string;
-  sections: string;
-  fontUrl?: string;
-  fontFamily?: string;
+  tone: "dark" | "light";
+  items: { name: string; desc: string; price?: string; emoji: string }[];
 }
 
-function extractKeywords(prompt: string): string[] {
-  return prompt.toLowerCase().split(/\s+/);
-}
+const COLOR_THEMES = {
+  tech: { bg: "#09090b", text: "#fafafa", muted: "#71717a", accent: "#8b5cf6", accentGradient: "linear-gradient(135deg,#8b5cf6,#06b6d4)", card: "#18181b", border: "#27272a" },
+  warm: { bg: "#0f0d0a", text: "#f5f0e8", muted: "#9c9588", accent: "#ea580c", accentGradient: "linear-gradient(135deg,#ea580c,#f59e0b)", card: "#1a1714", border: "#2a2520" },
+  elegant: { bg: "#fafaf8", text: "#1a1a1a", muted: "#7a7a7a", accent: "#1a1a1a", accentGradient: "linear-gradient(135deg,#1a1a1a,#4a4a4a)", card: "#ffffff", border: "#e8e8e5" },
+  creative: { bg: "#050505", text: "#f5f5f5", muted: "#8b8b8b", accent: "#ec4899", accentGradient: "linear-gradient(135deg,#ec4899,#8b5cf6)", card: "#111111", border: "#1e1e1e" },
+  nature: { bg: "#f8faf8", text: "#1a2e1a", muted: "#5c7a5c", accent: "#16a34a", accentGradient: "linear-gradient(135deg,#16a34a,#06b6d4)", card: "#ffffff", border: "#d4e8d4" },
+  bold: { bg: "#09090b", text: "#fafafa", muted: "#a1a1aa", accent: "#dc2626", accentGradient: "linear-gradient(135deg,#dc2626,#f59e0b)", card: "#18181b", border: "#27272a" },
+  ocean: { bg: "#0c1222", text: "#e2e8f0", muted: "#64748b", accent: "#0ea5e9", accentGradient: "linear-gradient(135deg,#0ea5e9,#6366f1)", card: "#1e293b", border: "#334155" },
+  luxury: { bg: "#0a0a0a", text: "#f5f0e0", muted: "#8a8070", accent: "#b8860b", accentGradient: "linear-gradient(135deg,#b8860b,#d4a574)", card: "#151510", border: "#2a2520" },
+  editorial: { bg: "#faf9f7", text: "#1a1a1a", muted: "#6b6b6b", accent: "#ef4444", accentGradient: "linear-gradient(135deg,#ef4444,#f59e0b)", card: "#ffffff", border: "#ebebeb" },
+  midnight: { bg: "#0f0f1a", text: "#e8e8f0", muted: "#7070a0", accent: "#818cf8", accentGradient: "linear-gradient(135deg,#818cf8,#c084fc)", card: "#1a1a2e", border: "#2a2a40" },
+};
 
-function detectTemplate(prompt: string): TemplateConfig {
+const FONTS = {
+  modern: { url: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap", family: "'Plus Jakarta Sans'" },
+  elegant: { url: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap", family: "'Inter'", display: "'Cormorant Garamond',serif", displayUrl: "" },
+  creative: { url: "https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap", family: "'Sora'" },
+  editorial: { url: "https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap", family: "'Inter'", display: "'Fraunces',serif" },
+  clean: { url: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap", family: "'DM Sans'" },
+  playful: { url: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap", family: "'Space Grotesk'" },
+};
+
+function parsePrompt(prompt: string): ParsedPrompt {
   const p = prompt.toLowerCase();
-
-  if (p.includes("portfolio") || p.includes("personal") || p.includes("resume") || p.includes("cv")) {
-    return {
-      navBrand: "Alex Chen",
-      navLinks: ["Work", "About", "Skills", "Contact"],
-      title: "I design & build<br><span style='background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>digital experiences</span>",
-      subtitle: "Full-stack developer and designer crafting beautiful, performant web applications. Currently open for freelance opportunities.",
-      bgColor: "#050505",
-      textColor: "#f5f5f5",
-      mutedColor: "#8b8b8b",
-      accentColor: "#6366f1",
-      accentGradient: "linear-gradient(135deg, #6366f1, #a855f7, #ec4899)",
-      cardBg: "#111111",
-      borderColor: "#1e1e1e",
-      fontUrl: "https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap",
-      fontFamily: "'Sora'",
-      heroExtra: `
-        <div style="display:flex;gap:16px;margin-top:2.5rem;justify-content:center;flex-wrap:wrap">
-          <a href="#work" style="padding:14px 32px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;border-radius:14px;text-decoration:none;font-weight:600;font-size:0.95rem;transition:all 0.3s;box-shadow:0 0 30px rgba(99,102,241,0.3)">View My Work</a>
-          <a href="#contact" style="padding:14px 32px;background:rgba(255,255,255,0.06);border:1px solid #2a2a2a;color:#f5f5f5;border-radius:14px;text-decoration:none;font-weight:500;font-size:0.95rem;backdrop-filter:blur(10px)">Get in Touch →</a>
-        </div>
-        <div style="display:flex;justify-content:center;gap:2.5rem;margin-top:3rem;padding-top:3rem;border-top:1px solid #1e1e1e">
-          <div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent">50+</div><div style="color:#8b8b8b;font-size:0.8rem;margin-top:2px">Projects</div></div>
-          <div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">5yr</div><div style="color:#8b8b8b;font-size:0.8rem;margin-top:2px">Experience</div></div>
-          <div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#ec4899,#f43f5e);-webkit-background-clip:text;-webkit-text-fill-color:transparent">30+</div><div style="color:#8b8b8b;font-size:0.8rem;margin-top:2px">Clients</div></div>
-        </div>`,
-      sections: `
-        <section id="work" style="padding:6rem 2rem;max-width:1100px;margin:0 auto">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:3rem"><div style="width:6px;height:6px;border-radius:50%;background:#6366f1"></div><span style="color:#6366f1;font-weight:600;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase">Featured Work</span></div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2rem">
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:20px;overflow:hidden;transition:transform 0.3s"><div style="height:240px;background:linear-gradient(135deg,#0f172a,#1e1b4b,#312e81);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden"><div style="width:70%;height:70%;background:#1a1a2e;border-radius:12px;border:1px solid #2a2a4e;display:flex;flex-direction:column;padding:16px;gap:8px"><div style="display:flex;gap:4px"><div style="width:6px;height:6px;border-radius:50%;background:#ef4444"></div><div style="width:6px;height:6px;border-radius:50%;background:#eab308"></div><div style="width:6px;height:6px;border-radius:50%;background:#22c55e"></div></div><div style="flex:1;display:grid;grid-template-columns:1fr 2fr;gap:8px"><div style="background:#252540;border-radius:6px"></div><div style="background:#252540;border-radius:6px"></div></div></div></div><div style="padding:1.75rem"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.75rem"><h3 style="color:#f5f5f5;font-size:1.2rem;font-weight:600">SaaS Dashboard</h3><span style="color:#6366f1;font-size:0.75rem;background:rgba(99,102,241,0.1);padding:4px 10px;border-radius:6px;border:1px solid rgba(99,102,241,0.2)">2024</span></div><p style="color:#8b8b8b;font-size:0.88rem;line-height:1.65">Full analytics platform with real-time data visualization and team collaboration features.</p><div style="display:flex;gap:6px;margin-top:1.25rem;flex-wrap:wrap"><span style="background:#1a1a1a;color:#8b8b8b;padding:4px 12px;border-radius:8px;font-size:0.75rem;border:1px solid #252525">React</span><span style="background:#1a1a1a;color:#8b8b8b;padding:4px 12px;border-radius:8px;font-size:0.75rem;border:1px solid #252525">TypeScript</span><span style="background:#1a1a1a;color:#8b8b8b;padding:4px 12px;border-radius:8px;font-size:0.75rem;border:1px solid #252525">D3.js</span></div></div></div>
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:20px;overflow:hidden;transition:transform 0.3s"><div style="height:240px;background:linear-gradient(135deg,#064e3b,#065f46,#047857);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden"><div style="width:60%;height:60%;background:rgba(255,255,255,0.08);border-radius:16px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:3rem">🛍️</div></div><div style="padding:1.75rem"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.75rem"><h3 style="color:#f5f5f5;font-size:1.2rem;font-weight:600">E-Commerce App</h3><span style="color:#10b981;font-size:0.75rem;background:rgba(16,185,129,0.1);padding:4px 10px;border-radius:6px;border:1px solid rgba(16,185,129,0.2)">2024</span></div><p style="color:#8b8b8b;font-size:0.88rem;line-height:1.65">Modern shopping experience with AI-powered recommendations and seamless checkout.</p><div style="display:flex;gap:6px;margin-top:1.25rem;flex-wrap:wrap"><span style="background:#1a1a1a;color:#8b8b8b;padding:4px 12px;border-radius:8px;font-size:0.75rem;border:1px solid #252525">Next.js</span><span style="background:#1a1a1a;color:#8b8b8b;padding:4px 12px;border-radius:8px;font-size:0.75rem;border:1px solid #252525">Stripe</span><span style="background:#1a1a1a;color:#8b8b8b;padding:4px 12px;border-radius:8px;font-size:0.75rem;border:1px solid #252525">Prisma</span></div></div></div>
-          </div>
-        </section>
-        <section style="padding:6rem 2rem;max-width:1100px;margin:0 auto">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:3rem"><div style="width:6px;height:6px;border-radius:50%;background:#a855f7"></div><span style="color:#a855f7;font-weight:600;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase">Tech Stack</span></div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem">
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:0.5rem">⚛️</div><div style="color:#f5f5f5;font-weight:600;font-size:0.9rem">React</div><div style="color:#8b8b8b;font-size:0.75rem;margin-top:2px">Frontend</div></div>
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:0.5rem">🔷</div><div style="color:#f5f5f5;font-weight:600;font-size:0.9rem">TypeScript</div><div style="color:#8b8b8b;font-size:0.75rem;margin-top:2px">Language</div></div>
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:0.5rem">🌊</div><div style="color:#f5f5f5;font-weight:600;font-size:0.9rem">Tailwind</div><div style="color:#8b8b8b;font-size:0.75rem;margin-top:2px">Styling</div></div>
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:0.5rem">🗄️</div><div style="color:#f5f5f5;font-weight:600;font-size:0.9rem">PostgreSQL</div><div style="color:#8b8b8b;font-size:0.75rem;margin-top:2px">Database</div></div>
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:0.5rem">🐳</div><div style="color:#f5f5f5;font-weight:600;font-size:0.9rem">Docker</div><div style="color:#8b8b8b;font-size:0.75rem;margin-top:2px">DevOps</div></div>
-            <div style="background:#111;border:1px solid #1e1e1e;border-radius:16px;padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:0.5rem">🔥</div><div style="color:#f5f5f5;font-weight:600;font-size:0.9rem">Node.js</div><div style="color:#8b8b8b;font-size:0.75rem;margin-top:2px">Backend</div></div>
-          </div>
-        </section>
-        <section id="contact" style="padding:5rem 2rem;max-width:600px;margin:0 auto;text-align:center">
-          <h2 style="color:#f5f5f5;font-size:2rem;font-weight:700;margin-bottom:0.75rem">Let's work together</h2>
-          <p style="color:#8b8b8b;margin-bottom:2.5rem">Have a project in mind? I'd love to hear about it.</p>
-          <a href="mailto:hello@alexchen.dev" style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;border-radius:14px;text-decoration:none;font-weight:600;font-size:1rem;box-shadow:0 0 40px rgba(99,102,241,0.25)">hello@alexchen.dev</a>
-        </section>`,
-    };
-  }
-
-  if (p.includes("landing") || p.includes("startup") || p.includes("saas") || p.includes("app")) {
-    return {
-      navBrand: "Nexus",
-      navLinks: ["Features", "Pricing", "Docs", "Blog"],
-      title: "The modern platform<br><span style='background:linear-gradient(135deg,#8b5cf6,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>for builders</span>",
-      subtitle: "Ship products 10x faster with AI-powered development, real-time collaboration, and one-click deployments.",
-      bgColor: "#09090b",
-      textColor: "#fafafa",
-      mutedColor: "#71717a",
-      accentColor: "#8b5cf6",
-      accentGradient: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
-      cardBg: "#18181b",
-      borderColor: "#27272a",
-      fontUrl: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap",
-      fontFamily: "'Plus Jakarta Sans'",
-      heroExtra: `
-        <div style="display:flex;gap:16px;margin-top:2.5rem;justify-content:center;flex-wrap:wrap">
-          <a href="#" style="padding:15px 36px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 30px rgba(139,92,246,0.4);letter-spacing:-0.01em">Start Free Trial</a>
-          <a href="#" style="padding:15px 36px;background:rgba(255,255,255,0.05);border:1px solid #27272a;color:#fafafa;border-radius:14px;text-decoration:none;font-weight:500;font-size:1rem;backdrop-filter:blur(12px)">Watch Demo <span style="margin-left:4px">→</span></a>
-        </div>
-        <div style="margin-top:3rem;display:flex;justify-content:center;gap:1rem;align-items:center;color:#71717a;font-size:0.85rem"><span>Trusted by 10,000+ developers</span></div>
-        <div style="margin-top:4rem;background:#111113;border:1px solid #27272a;border-radius:20px;max-width:900px;margin-left:auto;margin-right:auto;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,0.5)">
-          <div style="padding:14px 18px;border-bottom:1px solid #27272a;display:flex;align-items:center;gap:8px"><div style="display:flex;gap:6px"><div style="width:12px;height:12px;border-radius:50%;background:#ef4444"></div><div style="width:12px;height:12px;border-radius:50%;background:#eab308"></div><div style="width:12px;height:12px;border-radius:50%;background:#22c55e"></div></div><div style="flex:1;text-align:center;color:#52525b;font-size:0.8rem">nexus.app/dashboard</div></div>
-          <div style="display:grid;grid-template-columns:200px 1fr;height:350px">
-            <div style="border-right:1px solid #27272a;padding:16px;display:flex;flex-direction:column;gap:4px">
-              <div style="padding:8px 12px;background:rgba(139,92,246,0.1);border-radius:8px;color:#8b5cf6;font-size:0.8rem;font-weight:500">Dashboard</div>
-              <div style="padding:8px 12px;color:#52525b;font-size:0.8rem">Analytics</div>
-              <div style="padding:8px 12px;color:#52525b;font-size:0.8rem">Projects</div>
-              <div style="padding:8px 12px;color:#52525b;font-size:0.8rem">Settings</div>
-            </div>
-            <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-                <div style="background:#1a1a1f;border:1px solid #27272a;border-radius:12px;padding:16px"><div style="color:#52525b;font-size:0.75rem;margin-bottom:4px">Revenue</div><div style="color:#fafafa;font-size:1.5rem;font-weight:700">$48.2k</div><div style="color:#22c55e;font-size:0.75rem;margin-top:4px">↑ 12.5%</div></div>
-                <div style="background:#1a1a1f;border:1px solid #27272a;border-radius:12px;padding:16px"><div style="color:#52525b;font-size:0.75rem;margin-bottom:4px">Users</div><div style="color:#fafafa;font-size:1.5rem;font-weight:700">2,847</div><div style="color:#22c55e;font-size:0.75rem;margin-top:4px">↑ 8.3%</div></div>
-                <div style="background:#1a1a1f;border:1px solid #27272a;border-radius:12px;padding:16px"><div style="color:#52525b;font-size:0.75rem;margin-bottom:4px">Deploys</div><div style="color:#fafafa;font-size:1.5rem;font-weight:700">342</div><div style="color:#06b6d4;font-size:0.75rem;margin-top:4px">↑ 24.1%</div></div>
-              </div>
-              <div style="flex:1;background:#1a1a1f;border:1px solid #27272a;border-radius:12px;position:relative;overflow:hidden"><svg viewBox="0 0 400 120" style="width:100%;height:100%;position:absolute;bottom:0"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.3"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs><path d="M0 100 Q50 80 100 70 T200 50 T300 30 T400 20 L400 120 L0 120Z" fill="url(#g)"/><path d="M0 100 Q50 80 100 70 T200 50 T300 30 T400 20" fill="none" stroke="#8b5cf6" stroke-width="2"/></svg></div>
-            </div>
-          </div>
-        </div>`,
-      sections: `
-        <section style="padding:7rem 2rem;max-width:1100px;margin:0 auto">
-          <div style="text-align:center;margin-bottom:4rem"><span style="color:#8b5cf6;font-weight:600;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:0.75rem">Features</span><h2 style="font-size:2.5rem;font-weight:800;color:#fafafa;letter-spacing:-0.03em">Everything you need,<br>nothing you don't</h2></div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem">
-            <div style="background:#111113;border:1px solid #27272a;border-radius:20px;padding:2.5rem;transition:border-color 0.3s"><div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(6,182,212,0.2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(139,92,246,0.2)">⚡</div><h3 style="color:#fafafa;font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;letter-spacing:-0.01em">Lightning Fast</h3><p style="color:#71717a;font-size:0.92rem;line-height:1.75">Sub-100ms response times with edge computing and intelligent caching. Your users will feel the difference.</p></div>
-            <div style="background:#111113;border:1px solid #27272a;border-radius:20px;padding:2.5rem;transition:border-color 0.3s"><div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(34,197,94,0.2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(6,182,212,0.2)">🔒</div><h3 style="color:#fafafa;font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;letter-spacing:-0.01em">Enterprise Security</h3><p style="color:#71717a;font-size:0.92rem;line-height:1.75">SOC 2 Type II compliant. End-to-end encryption, SSO, and role-based access out of the box.</p></div>
-            <div style="background:#111113;border:1px solid #27272a;border-radius:20px;padding:2.5rem;transition:border-color 0.3s"><div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(244,63,94,0.2),rgba(251,146,60,0.2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(244,63,94,0.2)">🤖</div><h3 style="color:#fafafa;font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;letter-spacing:-0.01em">AI-Powered</h3><p style="color:#71717a;font-size:0.92rem;line-height:1.75">Built-in AI assistant that understands your codebase. Get intelligent suggestions and auto-fixes.</p></div>
-          </div>
-        </section>
-        <section style="padding:6rem 2rem;background:#0c0c0e">
-          <div style="max-width:1000px;margin:0 auto;text-align:center">
-            <span style="color:#06b6d4;font-weight:600;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:0.75rem">Pricing</span>
-            <h2 style="font-size:2.5rem;font-weight:800;color:#fafafa;margin-bottom:4rem;letter-spacing:-0.03em">Start free, scale infinitely</h2>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;max-width:950px;margin:0 auto">
-              <div style="background:#111113;border:1px solid #27272a;border-radius:20px;padding:3rem;text-align:left"><h3 style="color:#fafafa;font-weight:700;font-size:1.1rem">Starter</h3><p style="color:#71717a;font-size:0.85rem;margin:0.5rem 0 1.5rem">Perfect for side projects</p><div style="margin-bottom:2rem"><span style="font-size:3rem;font-weight:800;color:#fafafa;letter-spacing:-0.03em">$0</span><span style="color:#71717a;font-size:0.9rem">/month</span></div><ul style="list-style:none;padding:0;margin:0 0 2rem;display:flex;flex-direction:column;gap:12px"><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> 3 projects</li><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> AI generation</li><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Community support</li></ul><a href="#" style="display:block;text-align:center;padding:14px;border:1px solid #27272a;border-radius:12px;color:#fafafa;text-decoration:none;font-weight:600;font-size:0.92rem">Get Started</a></div>
-              <div style="background:#111113;border:2px solid #8b5cf6;border-radius:20px;padding:3rem;text-align:left;position:relative;box-shadow:0 0 60px rgba(139,92,246,0.15)"><div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#8b5cf6,#06b6d4);color:#fff;font-size:0.75rem;font-weight:700;padding:6px 20px;border-radius:100px;letter-spacing:0.02em">POPULAR</div><h3 style="color:#fafafa;font-weight:700;font-size:1.1rem">Pro</h3><p style="color:#71717a;font-size:0.85rem;margin:0.5rem 0 1.5rem">For serious builders</p><div style="margin-bottom:2rem"><span style="font-size:3rem;font-weight:800;color:#fafafa;letter-spacing:-0.03em">$29</span><span style="color:#71717a;font-size:0.9rem">/month</span></div><ul style="list-style:none;padding:0;margin:0 0 2rem;display:flex;flex-direction:column;gap:12px"><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Unlimited projects</li><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> GitHub integration</li><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Custom domains</li><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Priority support</li></ul><a href="#" style="display:block;text-align:center;padding:14px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);border-radius:12px;color:#fff;text-decoration:none;font-weight:700;font-size:0.92rem;box-shadow:0 4px 20px rgba(139,92,246,0.3)">Start Free Trial</a></div>
-              <div style="background:#111113;border:1px solid #27272a;border-radius:20px;padding:3rem;text-align:left"><h3 style="color:#fafafa;font-weight:700;font-size:1.1rem">Enterprise</h3><p style="color:#71717a;font-size:0.85rem;margin:0.5rem 0 1.5rem">Custom solutions</p><div style="margin-bottom:2rem"><span style="font-size:3rem;font-weight:800;color:#fafafa;letter-spacing:-0.03em">Custom</span></div><ul style="list-style:none;padding:0;margin:0 0 2rem;display:flex;flex-direction:column;gap:12px"><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Everything in Pro</li><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> SSO & SAML</li><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Dedicated support</li><li style="color:#a1a1aa;font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> SLA guarantee</li></ul><a href="#" style="display:block;text-align:center;padding:14px;border:1px solid #27272a;border-radius:12px;color:#fafafa;text-decoration:none;font-weight:600;font-size:0.92rem">Contact Sales</a></div>
-            </div>
-          </div>
-        </section>`,
-    };
-  }
-
-  if (p.includes("blog") || p.includes("article") || p.includes("magazine") || p.includes("news")) {
-    return {
-      navBrand: "Chronicle",
-      navLinks: ["Latest", "Technology", "Design", "Culture"],
-      title: "Stories that<br><span style='background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>inspire action</span>",
-      subtitle: "Deep explorations of technology, design thinking, and the future of digital products. Written by builders, for builders.",
-      bgColor: "#faf9f7",
-      textColor: "#1a1a1a",
-      mutedColor: "#6b6b6b",
-      accentColor: "#ef4444",
-      accentGradient: "linear-gradient(135deg, #ef4444, #f59e0b)",
-      cardBg: "#ffffff",
-      borderColor: "#ebebeb",
-      fontUrl: "https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap",
-      fontFamily: "'Inter'",
-      sections: `
-        <section style="padding:5rem 2rem;max-width:1000px;margin:0 auto">
-          <article style="display:grid;grid-template-columns:1.2fr 1fr;gap:0;background:#fff;border:1px solid #ebebeb;border-radius:24px;overflow:hidden;margin-bottom:3rem;box-shadow:0 4px 30px rgba(0,0,0,0.04)">
-            <div style="background:linear-gradient(135deg,#fef3c7,#fde68a,#fbbf24);min-height:360px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden"><div style="font-size:5rem;opacity:0.8">🚀</div><div style="position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,0.7);color:#fff;padding:6px 14px;border-radius:8px;font-size:0.75rem;font-weight:600;backdrop-filter:blur(8px)">Featured</div></div>
-            <div style="padding:3rem;display:flex;flex-direction:column;justify-content:center"><div style="display:flex;gap:8px;margin-bottom:1rem"><span style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:8px;font-size:0.75rem;font-weight:600">Technology</span><span style="color:#6b6b6b;font-size:0.8rem;display:flex;align-items:center">Mar 8, 2026</span></div><h2 style="font-family:'Fraunces',serif;font-size:1.75rem;font-weight:800;color:#1a1a1a;line-height:1.3;margin-bottom:1rem;letter-spacing:-0.02em">The Future of AI-Powered Development Tools</h2><p style="color:#6b6b6b;font-size:0.95rem;line-height:1.8;margin-bottom:1.5rem">An in-depth look at how machine learning is fundamentally reshaping the way developers write, review, and ship code at scale...</p><div style="display:flex;align-items:center;gap:12px"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6)"></div><div><div style="color:#1a1a1a;font-weight:600;font-size:0.85rem">Sarah Chen</div><div style="color:#9b9b9b;font-size:0.75rem">8 min read</div></div></div></div>
-          </article>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem">
-            <article style="background:#fff;border:1px solid #ebebeb;border-radius:20px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.03)"><div style="height:200px;background:linear-gradient(135deg,#dbeafe,#93c5fd,#3b82f6);position:relative"><div style="position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,0.9);padding:4px 10px;border-radius:6px;font-size:0.7rem;font-weight:600;color:#1e40af;backdrop-filter:blur(8px)">Design</div></div><div style="padding:1.75rem"><h3 style="font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;letter-spacing:-0.01em">The Art of Visual Hierarchy</h3><p style="color:#6b6b6b;font-size:0.88rem;line-height:1.7;margin-bottom:1rem">Master the principles that guide users' eyes through your design with intention and clarity.</p><div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#9b9b9b;font-size:0.78rem">5 min read</span><span style="color:#ef4444;font-size:0.78rem;font-weight:600">Read →</span></div></div></article>
-            <article style="background:#fff;border:1px solid #ebebeb;border-radius:20px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.03)"><div style="height:200px;background:linear-gradient(135deg,#d1fae5,#6ee7b7,#10b981);position:relative"><div style="position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,0.9);padding:4px 10px;border-radius:6px;font-size:0.7rem;font-weight:600;color:#065f46;backdrop-filter:blur(8px)">Startup</div></div><div style="padding:1.75rem"><h3 style="font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;letter-spacing:-0.01em">From Zero to MVP in 48 Hours</h3><p style="color:#6b6b6b;font-size:0.88rem;line-height:1.7;margin-bottom:1rem">A practical guide to rapid prototyping using modern tools and AI-assisted development.</p><div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#9b9b9b;font-size:0.78rem">7 min read</span><span style="color:#ef4444;font-size:0.78rem;font-weight:600">Read →</span></div></div></article>
-            <article style="background:#fff;border:1px solid #ebebeb;border-radius:20px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.03)"><div style="height:200px;background:linear-gradient(135deg,#fce7f3,#f9a8d4,#ec4899);position:relative"><div style="position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,0.9);padding:4px 10px;border-radius:6px;font-size:0.7rem;font-weight:600;color:#9d174d;backdrop-filter:blur(8px)">Culture</div></div><div style="padding:1.75rem"><h3 style="font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;letter-spacing:-0.01em">Remote Work is Not the Future</h3><p style="color:#6b6b6b;font-size:0.88rem;line-height:1.7;margin-bottom:1rem">Why hybrid work models are winning, and what this means for your team's productivity.</p><div style="display:flex;justify-content:space-between;align-items:center"><span style="color:#9b9b9b;font-size:0.78rem">4 min read</span><span style="color:#ef4444;font-size:0.78rem;font-weight:600">Read →</span></div></div></article>
-          </div>
-        </section>
-        <section style="padding:5rem 2rem;background:#1a1a1a;margin-top:3rem">
-          <div style="max-width:600px;margin:0 auto;text-align:center"><h2 style="font-family:'Fraunces',serif;color:#fafafa;font-size:2rem;font-weight:800;margin-bottom:1rem">Stay in the loop</h2><p style="color:#9b9b9b;margin-bottom:2rem;font-size:0.95rem">Get the best stories delivered to your inbox every week.</p><div style="display:flex;gap:12px;max-width:440px;margin:0 auto"><input type="email" placeholder="your@email.com" style="flex:1;padding:14px 18px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:12px;color:#fafafa;font-size:0.92rem;outline:none;font-family:inherit" /><button style="padding:14px 28px;background:linear-gradient(135deg,#ef4444,#f59e0b);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:0.92rem;cursor:pointer">Subscribe</button></div></div>
-        </section>`,
-    };
-  }
-
-  if (p.includes("ecommerce") || p.includes("e-commerce") || p.includes("shop") || p.includes("store")) {
-    return {
-      navBrand: "MAISON",
-      navLinks: ["New In", "Collections", "Sale", "About"],
-      title: "Redefine your<br><span style='background:linear-gradient(135deg,#b8860b,#d4a574);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>everyday luxury</span>",
-      subtitle: "Curated collections crafted with purpose. Sustainable materials, timeless design, exceptional quality.",
-      bgColor: "#fafaf8",
-      textColor: "#1a1a1a",
-      mutedColor: "#7a7a7a",
-      accentColor: "#1a1a1a",
-      accentGradient: "linear-gradient(135deg, #1a1a1a, #4a4a4a)",
-      cardBg: "#ffffff",
-      borderColor: "#e8e8e5",
-      fontUrl: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap",
-      fontFamily: "'Inter'",
-      heroExtra: `
-        <div style="display:flex;gap:16px;margin-top:2.5rem;justify-content:center;flex-wrap:wrap">
-          <a href="#" style="padding:16px 40px;background:#1a1a1a;color:#fafafa;border-radius:0;text-decoration:none;font-weight:600;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase">Shop Collection</a>
-          <a href="#" style="padding:16px 40px;border:1.5px solid #1a1a1a;color:#1a1a1a;border-radius:0;text-decoration:none;font-weight:500;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase">Our Story</a>
-        </div>`,
-      sections: `
-        <section style="padding:6rem 2rem;max-width:1200px;margin:0 auto">
-          <div style="display:flex;justify-content:space-between;align-items:end;margin-bottom:3rem"><div><span style="color:#b8860b;font-weight:600;font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.5rem">New Arrivals</span><h2 style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:600;color:#1a1a1a;letter-spacing:-0.02em">Curated for You</h2></div><a href="#" style="color:#7a7a7a;font-size:0.85rem;text-decoration:none;border-bottom:1px solid #7a7a7a;padding-bottom:2px">View All →</a></div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem">
-            <div style="cursor:pointer"><div style="aspect-ratio:3/4;background:linear-gradient(180deg,#f0ede8,#e8e4dd);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:5rem;margin-bottom:1.25rem;position:relative;overflow:hidden"><span>🧥</span><div style="position:absolute;top:16px;left:16px;background:#1a1a1a;color:#fafafa;padding:4px 12px;font-size:0.7rem;font-weight:600;letter-spacing:0.05em">NEW</div></div><h3 style="color:#1a1a1a;font-weight:500;font-size:0.95rem;margin-bottom:0.25rem">Wool Blend Overcoat</h3><p style="color:#7a7a7a;font-size:0.85rem;margin-bottom:0.5rem">Italian wool · Camel</p><p style="color:#1a1a1a;font-weight:600;font-size:1rem">$485.00</p></div>
-            <div style="cursor:pointer"><div style="aspect-ratio:3/4;background:linear-gradient(180deg,#ebe8e2,#ddd8d0);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:5rem;margin-bottom:1.25rem"><span>👜</span></div><h3 style="color:#1a1a1a;font-weight:500;font-size:0.95rem;margin-bottom:0.25rem">Leather Tote Bag</h3><p style="color:#7a7a7a;font-size:0.85rem;margin-bottom:0.5rem">Full grain leather · Cognac</p><p style="color:#1a1a1a;font-weight:600;font-size:1rem">$320.00</p></div>
-            <div style="cursor:pointer"><div style="aspect-ratio:3/4;background:linear-gradient(180deg,#e8e5e0,#d5d0c8);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:5rem;margin-bottom:1.25rem"><span>👟</span></div><h3 style="color:#1a1a1a;font-weight:500;font-size:0.95rem;margin-bottom:0.25rem">Suede Chelsea Boots</h3><p style="color:#7a7a7a;font-size:0.85rem;margin-bottom:0.5rem">Spanish suede · Sand</p><p style="color:#1a1a1a;font-weight:600;font-size:1rem">$265.00</p></div>
-            <div style="cursor:pointer"><div style="aspect-ratio:3/4;background:linear-gradient(180deg,#e5e2dc,#d0ccc4);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:5rem;margin-bottom:1.25rem;position:relative"><span>⌚</span><div style="position:absolute;top:16px;left:16px;background:#b8860b;color:#fff;padding:4px 12px;font-size:0.7rem;font-weight:600;letter-spacing:0.05em">BESTSELLER</div></div><h3 style="color:#1a1a1a;font-weight:500;font-size:0.95rem;margin-bottom:0.25rem">Minimalist Watch</h3><p style="color:#7a7a7a;font-size:0.85rem;margin-bottom:0.5rem">Swiss movement · Mesh band</p><p style="color:#1a1a1a;font-weight:600;font-size:1rem">$195.00</p></div>
-          </div>
-        </section>
-        <section style="background:#1a1a1a;padding:6rem 2rem;margin-top:2rem">
-          <div style="max-width:800px;margin:0 auto;text-align:center"><h2 style="font-family:'Cormorant Garamond',serif;color:#fafafa;font-size:2.5rem;font-weight:600;margin-bottom:1rem">Join the Maison</h2><p style="color:#9b9b9b;font-size:1rem;line-height:1.8;margin-bottom:2.5rem">Subscribe for early access to new collections, exclusive offers, and styling inspiration.</p><div style="display:flex;gap:0;max-width:480px;margin:0 auto"><input type="email" placeholder="Enter your email" style="flex:1;padding:16px 20px;background:#2a2a2a;border:1px solid #3a3a3a;border-right:none;color:#fafafa;font-size:0.9rem;outline:none;font-family:inherit" /><button style="padding:16px 32px;background:#fafafa;color:#1a1a1a;border:none;font-weight:600;font-size:0.85rem;letter-spacing:0.05em;cursor:pointer;text-transform:uppercase">Subscribe</button></div></div>
-        </section>`,
-    };
-  }
-
-  if (p.includes("restaurant") || p.includes("food") || p.includes("cafe") || p.includes("menu")) {
-    return {
-      navBrand: "Ember & Oak",
-      navLinks: ["Menu", "Reservations", "Story", "Events"],
-      title: "Where fire meets<br><span style='background:linear-gradient(135deg,#dc2626,#ea580c,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>flavor</span>",
-      subtitle: "Wood-fired cuisine crafted with locally sourced ingredients. An unforgettable dining experience in the heart of downtown.",
-      bgColor: "#0f0d0a",
-      textColor: "#f5f0e8",
-      mutedColor: "#9c9588",
-      accentColor: "#dc2626",
-      accentGradient: "linear-gradient(135deg, #dc2626, #ea580c, #f59e0b)",
-      cardBg: "#1a1714",
-      borderColor: "#2a2520",
-      fontUrl: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap",
-      fontFamily: "'Inter'",
-      heroExtra: `
-        <div style="display:flex;gap:16px;margin-top:2.5rem;justify-content:center;flex-wrap:wrap">
-          <a href="#" style="padding:16px 36px;background:linear-gradient(135deg,#dc2626,#ea580c);color:#fff;border-radius:0;text-decoration:none;font-weight:600;font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 4px 30px rgba(220,38,38,0.3)">Reserve a Table</a>
-          <a href="#menu" style="padding:16px 36px;border:1px solid #3a3530;color:#f5f0e8;border-radius:0;text-decoration:none;font-weight:500;font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase">View Menu</a>
-        </div>
-        <div style="display:flex;justify-content:center;gap:3rem;margin-top:4rem;padding-top:3rem;border-top:1px solid #2a2520">
-          <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#f5f0e8">4.9</div><div style="color:#f59e0b;font-size:0.85rem;letter-spacing:2px">★★★★★</div><div style="color:#9c9588;font-size:0.75rem;margin-top:4px">500+ reviews</div></div>
-          <div style="width:1px;background:#2a2520"></div>
-          <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#f5f0e8">12</div><div style="color:#9c9588;font-size:0.75rem;margin-top:4px">Years of excellence</div></div>
-          <div style="width:1px;background:#2a2520"></div>
-          <div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#f5f0e8">🏆</div><div style="color:#9c9588;font-size:0.75rem;margin-top:4px">Michelin Guide</div></div>
-        </div>`,
-      sections: `
-        <section id="menu" style="padding:6rem 2rem;max-width:900px;margin:0 auto">
-          <div style="text-align:center;margin-bottom:4rem"><span style="color:#dc2626;font-weight:600;font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.75rem">From Our Kitchen</span><h2 style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#f5f0e8">Signature Dishes</h2></div>
-          <div style="display:flex;flex-direction:column;gap:1px;background:#2a2520;border-radius:20px;overflow:hidden">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:2rem 2.5rem;background:#1a1714"><div style="flex:1"><div style="display:flex;align-items:center;gap:12px;margin-bottom:0.5rem"><h3 style="color:#f5f0e8;font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem">Wagyu Ribeye</h3><span style="background:linear-gradient(135deg,#dc2626,#ea580c);color:#fff;padding:3px 10px;border-radius:4px;font-size:0.65rem;font-weight:700;letter-spacing:0.05em">CHEF'S PICK</span></div><p style="color:#9c9588;font-size:0.88rem;line-height:1.6">A5 Japanese wagyu · wood-fired · bone marrow butter · seasonal vegetables</p></div><span style="color:#f5f0e8;font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-left:2rem">$68</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:2rem 2.5rem;background:#1a1714"><div style="flex:1"><h3 style="color:#f5f0e8;font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem;margin-bottom:0.5rem">Lobster Risotto</h3><p style="color:#9c9588;font-size:0.88rem;line-height:1.6">Maine lobster tail · saffron arborio · truffle oil · micro herbs</p></div><span style="color:#f5f0e8;font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-left:2rem">$45</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:2rem 2.5rem;background:#1a1714"><div style="flex:1"><h3 style="color:#f5f0e8;font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem;margin-bottom:0.5rem">Duck Confit</h3><p style="color:#9c9588;font-size:0.88rem;line-height:1.6">24-hour confit · cherry gastrique · roasted root vegetables · crispy skin</p></div><span style="color:#f5f0e8;font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-left:2rem">$38</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:2rem 2.5rem;background:#1a1714"><div style="flex:1"><h3 style="color:#f5f0e8;font-family:'Playfair Display',serif;font-weight:700;font-size:1.2rem;margin-bottom:0.5rem">Pan-Seared Scallops</h3><p style="color:#9c9588;font-size:0.88rem;line-height:1.6">Hokkaido scallops · cauliflower purée · brown butter · capers</p></div><span style="color:#f5f0e8;font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-left:2rem">$42</span></div>
-          </div>
-        </section>
-        <section style="padding:5rem 2rem;background:#1a1714;margin-top:2rem">
-          <div style="max-width:700px;margin:0 auto;text-align:center"><h2 style="font-family:'Playfair Display',serif;color:#f5f0e8;font-size:2rem;font-weight:700;margin-bottom:0.75rem">Reserve Your Evening</h2><p style="color:#9c9588;margin-bottom:0.5rem;font-size:0.95rem">Tuesday – Sunday · 5:00 PM – 11:00 PM</p><p style="color:#9c9588;margin-bottom:2.5rem;font-size:0.88rem">224 Oak Street, Downtown</p><a href="#" style="display:inline-block;padding:18px 48px;background:linear-gradient(135deg,#dc2626,#ea580c);color:#fff;text-decoration:none;font-weight:700;font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 4px 30px rgba(220,38,38,0.3)">Book a Table</a></div>
-        </section>`,
-    };
-  }
-
-  // Enhanced default / generic template
   const words = prompt.trim().split(/\s+/);
-  const brandName = words.slice(0, 2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+
+  // Extract brand name from prompt
+  let brandName = "Sayo";
+  const namePatterns = [
+    /(?:called|named|for|brand)\s+["']?([A-Z][a-zA-Z0-9\s&]+?)["']?(?:\s|,|\.|\b(?:with|that|a|an|the|website|site|page|app))/i,
+    /^["']?([A-Z][a-zA-Z0-9\s&]{1,20})["']?\s*[-–—:]/i,
+  ];
+  for (const pat of namePatterns) {
+    const m = prompt.match(pat);
+    if (m) { brandName = m[1].trim(); break; }
+  }
+  if (brandName === "Sayo") {
+    // Use context words as brand
+    const contextWords = words.filter(w => !["a","an","the","for","with","and","or","but","in","on","at","to","of","my","me","i","want","need","create","make","build","website","site","page","web","app","like","good","great","best","modern","beautiful","stunning","professional","simple","clean","cool","nice"].includes(w.toLowerCase()));
+    if (contextWords.length > 0) {
+      brandName = contextWords.slice(0, 2).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    }
+  }
+
+  // Detect type
+  let type = "generic";
+  const typeMap: Record<string, string[]> = {
+    portfolio: ["portfolio","personal","resume","cv","freelance","developer","designer"],
+    ecommerce: ["ecommerce","e-commerce","shop","store","product","buy","sell","retail","fashion","clothing","jewelry"],
+    restaurant: ["restaurant","food","cafe","coffee","menu","dining","bakery","pizza","sushi","bar","pub","bistro","kitchen"],
+    blog: ["blog","article","magazine","news","journal","stories","writing","publication","media"],
+    saas: ["saas","platform","tool","dashboard","analytics","software","startup","app","api","cloud","service"],
+    agency: ["agency","studio","creative","design","marketing","consulting","firm","services"],
+    fitness: ["fitness","gym","workout","health","yoga","training","sport","wellness","coach"],
+    education: ["education","school","course","learning","academy","university","tutor","teach","class"],
+    travel: ["travel","hotel","booking","tour","vacation","resort","destination","flight","adventure"],
+    photography: ["photography","photo","gallery","photographer","camera","visual","shots","album"],
+    music: ["music","band","artist","album","concert","song","dj","producer","record"],
+    real_estate: ["real estate","property","apartment","house","rent","listing","realty","home"],
+    medical: ["medical","health","clinic","doctor","hospital","dental","therapy","care","patient"],
+    nonprofit: ["nonprofit","charity","donate","cause","volunteer","foundation","ngo","community"],
+    event: ["event","conference","summit","meetup","wedding","party","festival","ticket"],
+  };
+  for (const [t, keywords] of Object.entries(typeMap)) {
+    if (keywords.some(k => p.includes(k))) { type = t; break; }
+  }
+
+  // Pick color scheme based on type + prompt keywords
+  let colorKey = "tech";
+  if (p.includes("dark") || p.includes("night") || p.includes("midnight")) colorKey = "midnight";
+  else if (p.includes("luxury") || p.includes("premium") || p.includes("gold")) colorKey = "luxury";
+  else if (p.includes("nature") || p.includes("green") || p.includes("eco") || p.includes("organic")) colorKey = "nature";
+  else if (p.includes("bold") || p.includes("red") || p.includes("fire") || p.includes("energy")) colorKey = "bold";
+  else if (p.includes("ocean") || p.includes("blue") || p.includes("sea") || p.includes("water")) colorKey = "ocean";
+  else if (p.includes("creative") || p.includes("art") || p.includes("pink") || p.includes("fun")) colorKey = "creative";
+  else if (p.includes("clean") || p.includes("minimal") || p.includes("white") || p.includes("light")) colorKey = "elegant";
+  else if (p.includes("warm") || p.includes("orange") || p.includes("cozy")) colorKey = "warm";
+  else {
+    const typeColorMap: Record<string, string> = {
+      portfolio: "creative", ecommerce: "elegant", restaurant: "warm", blog: "editorial",
+      saas: "tech", agency: "midnight", fitness: "bold", education: "ocean",
+      travel: "ocean", photography: "creative", music: "midnight", real_estate: "elegant",
+      medical: "nature", nonprofit: "nature", event: "bold",
+    };
+    colorKey = typeColorMap[type] || "tech";
+  }
+  const colorScheme = COLOR_THEMES[colorKey as keyof typeof COLOR_THEMES];
+  const tone = ["elegant", "nature", "editorial"].includes(colorKey) ? "light" : "dark" as "dark" | "light";
+
+  // Pick font
+  let fontKey = "modern";
+  if (["restaurant", "ecommerce", "luxury", "real_estate"].some(t => type === t)) fontKey = "elegant";
+  else if (["blog", "editorial"].some(t => type === t || p.includes(t))) fontKey = "editorial";
+  else if (["portfolio", "photography", "music"].some(t => type === t)) fontKey = "creative";
+  else if (["fitness", "event"].some(t => type === t)) fontKey = "playful";
+  else if (["saas", "agency"].some(t => type === t)) fontKey = "clean";
+  const font = FONTS[fontKey as keyof typeof FONTS];
+
+  // Generate relevant content
+  const contentGen = getContentForType(type, prompt, brandName);
+
   return {
-    navBrand: brandName || "Sayo",
-    navLinks: ["Features", "About", "Pricing", "Contact"],
-    title: `Build something<br><span style='background:linear-gradient(135deg,#dc2626,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>extraordinary</span>`,
-    subtitle: prompt.length > 100 ? prompt.slice(0, 100) + "..." : prompt || "Transform your ideas into reality with cutting-edge technology and beautiful design.",
-    bgColor: "#09090b",
-    textColor: "#fafafa",
-    mutedColor: "#71717a",
-    accentColor: "#dc2626",
-    accentGradient: "linear-gradient(135deg, #dc2626, #f59e0b)",
-    cardBg: "#18181b",
-    borderColor: "#27272a",
-    fontUrl: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap",
-    fontFamily: "'Plus Jakarta Sans'",
-    heroExtra: `
-      <div style="display:flex;gap:16px;margin-top:2.5rem;justify-content:center;flex-wrap:wrap">
-        <a href="#" style="padding:15px 36px;background:linear-gradient(135deg,#dc2626,#f59e0b);color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 30px rgba(220,38,38,0.3)">Get Started Free</a>
-        <a href="#" style="padding:15px 36px;background:rgba(255,255,255,0.05);border:1px solid #27272a;color:#fafafa;border-radius:14px;text-decoration:none;font-weight:500;font-size:1rem;backdrop-filter:blur(12px)">Learn More →</a>
-      </div>`,
-    sections: `
-      <section style="padding:7rem 2rem;max-width:1100px;margin:0 auto">
-        <div style="text-align:center;margin-bottom:4rem"><span style="color:#dc2626;font-weight:600;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:0.75rem">Why Choose Us</span><h2 style="font-size:2.5rem;font-weight:800;color:#fafafa;letter-spacing:-0.03em">Built for the modern web</h2></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem">
-          <div style="background:#111113;border:1px solid #27272a;border-radius:20px;padding:2.5rem"><div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(220,38,38,0.2),rgba(245,158,11,0.2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(220,38,38,0.2)">✨</div><h3 style="color:#fafafa;font-size:1.2rem;font-weight:700;margin-bottom:0.75rem">AI-Powered</h3><p style="color:#71717a;font-size:0.92rem;line-height:1.75">Intelligent automation that adapts to your needs and delivers exceptional results every time.</p></div>
-          <div style="background:#111113;border:1px solid #27272a;border-radius:20px;padding:2.5rem"><div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(34,197,94,0.2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(245,158,11,0.2)">🚀</div><h3 style="color:#fafafa;font-size:1.2rem;font-weight:700;margin-bottom:0.75rem">Lightning Fast</h3><p style="color:#71717a;font-size:0.92rem;line-height:1.75">Optimized performance with edge computing for sub-second response times globally.</p></div>
-          <div style="background:#111113;border:1px solid #27272a;border-radius:20px;padding:2.5rem"><div style="width:52px;height:52px;background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(6,182,212,0.2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(34,197,94,0.2)">🔒</div><h3 style="color:#fafafa;font-size:1.2rem;font-weight:700;margin-bottom:0.75rem">Secure by Default</h3><p style="color:#71717a;font-size:0.92rem;line-height:1.75">Enterprise-grade security with encryption, SSO, and compliance built right in.</p></div>
-        </div>
-      </section>
-      <section style="padding:5rem 2rem;background:#0c0c0e">
-        <div style="max-width:700px;margin:0 auto;text-align:center">
-          <h2 style="font-size:2.2rem;font-weight:800;color:#fafafa;margin-bottom:1rem;letter-spacing:-0.02em">Ready to get started?</h2>
-          <p style="color:#71717a;font-size:1rem;margin-bottom:2.5rem">Join thousands of builders who ship faster with our platform.</p>
-          <a href="#" style="display:inline-block;padding:16px 48px;background:linear-gradient(135deg,#dc2626,#f59e0b);color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 40px rgba(220,38,38,0.3)">Start Building Free</a>
-        </div>
-      </section>`,
+    brandName,
+    tagline: contentGen.tagline,
+    description: contentGen.description,
+    type,
+    colorScheme,
+    font,
+    sections: contentGen.sections,
+    features: contentGen.features,
+    navLinks: contentGen.navLinks,
+    tone,
+    items: contentGen.items,
   };
 }
 
-export function generateHTMLFromPrompt(prompt: string): string {
-  const t = detectTemplate(prompt);
-  const fontUrl = t.fontUrl || "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap";
-  const fontFamily = t.fontFamily || "'Inter'";
+interface ContentData {
+  tagline: string;
+  description: string;
+  navLinks: string[];
+  sections: string[];
+  features: { title: string; desc: string; emoji: string }[];
+  items: { name: string; desc: string; price?: string; emoji: string }[];
+}
+
+function getContentForType(type: string, prompt: string, brand: string): ContentData {
+  const p = prompt.toLowerCase();
+
+  const contentMap: Record<string, ContentData> = {
+    portfolio: {
+      tagline: `I create <span class='grad'>digital experiences</span> that matter`,
+      description: "Designer & developer crafting thoughtful, performant web experiences. Currently available for new projects.",
+      navLinks: ["Work", "About", "Skills", "Contact"],
+      sections: ["projects", "skills", "contact"],
+      features: [
+        { title: "UI/UX Design", desc: "Creating intuitive interfaces with a focus on user delight and accessibility.", emoji: "🎨" },
+        { title: "Frontend Dev", desc: "Building responsive, performant applications with modern frameworks.", emoji: "⚡" },
+        { title: "Brand Identity", desc: "Developing cohesive visual systems that tell your brand's story.", emoji: "💎" },
+      ],
+      items: [
+        { name: "E-Commerce Redesign", desc: "Complete UI overhaul resulting in 40% conversion increase", emoji: "🛍️" },
+        { name: "SaaS Dashboard", desc: "Real-time analytics platform for enterprise clients", emoji: "📊" },
+        { name: "Mobile Banking App", desc: "Fintech app serving 100K+ daily active users", emoji: "💳" },
+        { name: "Brand Identity System", desc: "Full visual identity for a sustainable fashion startup", emoji: "🎯" },
+      ],
+    },
+    ecommerce: {
+      tagline: `Discover your <span class='grad'>signature style</span>`,
+      description: p.includes("jewelry") ? "Handcrafted pieces that tell your story. Ethically sourced, beautifully designed." :
+        p.includes("fashion") || p.includes("clothing") ? "Curated collections blending timeless elegance with modern design." :
+        "Premium products curated for quality, designed for life. Free shipping on orders over $100.",
+      navLinks: ["Shop", "Collections", "New In", "Sale"],
+      sections: ["products", "features", "newsletter"],
+      features: [
+        { title: "Free Shipping", desc: "Complimentary delivery on all orders over $100 worldwide.", emoji: "🚚" },
+        { title: "Easy Returns", desc: "30-day hassle-free returns. No questions asked.", emoji: "↩️" },
+        { title: "Secure Payment", desc: "256-bit SSL encryption. Apple Pay, Google Pay accepted.", emoji: "🔒" },
+      ],
+      items: p.includes("jewelry") ? [
+        { name: "Aurora Pendant", desc: "18k gold · Lab-grown diamond", price: "$285", emoji: "✨" },
+        { name: "Luna Ring", desc: "Sterling silver · Moonstone", price: "$165", emoji: "💍" },
+        { name: "Soleil Earrings", desc: "Gold vermeil · Citrine drops", price: "$195", emoji: "🌟" },
+        { name: "Celestial Bracelet", desc: "Rose gold · Star charms", price: "$220", emoji: "⭐" },
+      ] : p.includes("fashion") || p.includes("clothing") ? [
+        { name: "Merino Wool Sweater", desc: "Italian yarn · Relaxed fit", price: "$185", emoji: "🧥" },
+        { name: "Linen Trousers", desc: "Japanese linen · High waist", price: "$145", emoji: "👖" },
+        { name: "Silk Blend Shirt", desc: "Mulberry silk · Classic cut", price: "$210", emoji: "👔" },
+        { name: "Canvas Sneakers", desc: "Organic cotton · Rubber sole", price: "$95", emoji: "👟" },
+      ] : [
+        { name: "Premium Collection", desc: "Our finest curated selection", price: "$299", emoji: "⭐" },
+        { name: "Essential Series", desc: "Everyday luxury essentials", price: "$149", emoji: "💎" },
+        { name: "Limited Edition", desc: "Exclusive small-batch items", price: "$399", emoji: "🔥" },
+        { name: "Starter Pack", desc: "Perfect introduction set", price: "$89", emoji: "🎁" },
+      ],
+    },
+    restaurant: {
+      tagline: `Where flavor meets <span class='grad'>artistry</span>`,
+      description: p.includes("sushi") ? "Omakase experience with the freshest seasonal fish. Reservations recommended." :
+        p.includes("pizza") ? "Wood-fired Neapolitan pizza made with imported Italian ingredients." :
+        p.includes("cafe") || p.includes("coffee") ? "Specialty coffee and artisan pastries in a cozy atmosphere." :
+        "Farm-to-table cuisine celebrating local ingredients and seasonal flavors.",
+      navLinks: ["Menu", "Reserve", "Story", "Events"],
+      sections: ["menu", "testimonial", "reservation"],
+      features: [
+        { title: "Farm to Table", desc: "Ingredients sourced from local farms within 50 miles.", emoji: "🌱" },
+        { title: "Award Winning", desc: "Recognized by Michelin Guide and James Beard Foundation.", emoji: "🏆" },
+        { title: "Private Dining", desc: "Intimate spaces for celebrations up to 40 guests.", emoji: "🍷" },
+      ],
+      items: p.includes("sushi") ? [
+        { name: "Omakase Course", desc: "12-piece chef's selection · seasonal fish", price: "$120", emoji: "🍣" },
+        { name: "Dragon Roll", desc: "Eel · avocado · tobiko · unagi sauce", price: "$22", emoji: "🐉" },
+        { name: "Wagyu Tataki", desc: "A5 seared · ponzu · microgreens", price: "$38", emoji: "🥩" },
+        { name: "Matcha Tiramisu", desc: "Ceremonial grade · mascarpone", price: "$14", emoji: "🍵" },
+      ] : p.includes("pizza") ? [
+        { name: "Margherita DOP", desc: "San Marzano · fior di latte · basil", price: "$18", emoji: "🍕" },
+        { name: "Truffle Bianca", desc: "Black truffle · ricotta · mozzarella", price: "$24", emoji: "🍄" },
+        { name: "Diavola", desc: "Spicy salami · Calabrian chili · honey", price: "$20", emoji: "🌶️" },
+        { name: "Burrata Salad", desc: "Heirloom tomato · arugula · aged balsamic", price: "$16", emoji: "🥗" },
+      ] : p.includes("cafe") || p.includes("coffee") ? [
+        { name: "Pour Over", desc: "Single origin · rotating selection", price: "$6", emoji: "☕" },
+        { name: "Oat Latte", desc: "Double shot · house-made oat milk", price: "$7", emoji: "🥛" },
+        { name: "Croissant", desc: "Butter · 72-hour laminated dough", price: "$5", emoji: "🥐" },
+        { name: "Açaí Bowl", desc: "Organic açaí · granola · seasonal fruit", price: "$14", emoji: "🫐" },
+      ] : [
+        { name: "Herb-Crusted Salmon", desc: "Wild-caught · dill cream · roasted vegetables", price: "$34", emoji: "🐟" },
+        { name: "Braised Short Rib", desc: "Red wine reduction · truffle mash · gremolata", price: "$42", emoji: "🥩" },
+        { name: "Seasonal Risotto", desc: "Arborio rice · parmesan · market vegetables", price: "$28", emoji: "🍚" },
+        { name: "Chocolate Fondant", desc: "Valrhona · vanilla bean ice cream · berries", price: "$16", emoji: "🍫" },
+      ],
+    },
+    blog: {
+      tagline: `Stories that <span class='grad'>inspire action</span>`,
+      description: "Deep explorations at the intersection of technology, design, and culture. Written by builders, for builders.",
+      navLinks: ["Latest", "Topics", "About", "Subscribe"],
+      sections: ["featured", "articles", "newsletter"],
+      features: [
+        { title: "Technology", desc: "Deep dives into emerging tech and development practices.", emoji: "💻" },
+        { title: "Design", desc: "Visual thinking, UX patterns, and creative processes.", emoji: "🎨" },
+        { title: "Culture", desc: "The human side of building digital products.", emoji: "🌍" },
+      ],
+      items: [
+        { name: "The Future of AI-First Development", desc: "How language models are reshaping software engineering workflows", emoji: "🤖" },
+        { name: "Design Systems at Scale", desc: "Lessons from maintaining a design system across 200+ components", emoji: "📐" },
+        { name: "Remote Work is Evolving", desc: "Why async-first culture beats traditional remote work", emoji: "🏠" },
+        { name: "From Concept to Launch in 48 Hours", desc: "A practical guide to rapid prototyping and validation", emoji: "🚀" },
+      ],
+    },
+    saas: {
+      tagline: `The modern platform <span class='grad'>for builders</span>`,
+      description: "Ship products 10x faster with AI-powered development, real-time collaboration, and one-click deployments.",
+      navLinks: ["Features", "Pricing", "Docs", "Blog"],
+      sections: ["dashboard", "features", "pricing", "cta"],
+      features: [
+        { title: "Lightning Fast", desc: "Sub-100ms response times with edge computing and intelligent caching.", emoji: "⚡" },
+        { title: "Enterprise Security", desc: "SOC 2 compliant. End-to-end encryption and SSO out of the box.", emoji: "🔒" },
+        { title: "AI-Powered", desc: "Built-in AI that understands your codebase for intelligent suggestions.", emoji: "🤖" },
+      ],
+      items: [
+        { name: "Starter", desc: "3 projects · Community support", price: "Free", emoji: "🌱" },
+        { name: "Pro", desc: "Unlimited projects · Priority support · Custom domains", price: "$29/mo", emoji: "⚡" },
+        { name: "Enterprise", desc: "SSO · SLA · Dedicated support · Custom integrations", price: "Custom", emoji: "🏢" },
+      ],
+    },
+    agency: {
+      tagline: `We build <span class='grad'>digital products</span> people love`,
+      description: "A full-service digital studio specializing in brand strategy, product design, and web development.",
+      navLinks: ["Work", "Services", "About", "Contact"],
+      sections: ["projects", "services", "clients"],
+      features: [
+        { title: "Brand Strategy", desc: "Research-driven positioning that resonates with your audience.", emoji: "🎯" },
+        { title: "Product Design", desc: "User-centered design from concept to polished interfaces.", emoji: "🎨" },
+        { title: "Development", desc: "Scalable, performant applications built with modern tech.", emoji: "⚙️" },
+      ],
+      items: [
+        { name: "Fintech Startup Rebrand", desc: "Complete visual identity and product redesign", emoji: "💳" },
+        { name: "E-Commerce Platform", desc: "Custom shopping experience for luxury brand", emoji: "👜" },
+        { name: "Healthcare App", desc: "Patient portal serving 500K+ users", emoji: "🏥" },
+        { name: "SaaS Marketing Site", desc: "High-converting landing pages with 3x ROI", emoji: "📈" },
+      ],
+    },
+    fitness: {
+      tagline: `Transform your body, <span class='grad'>elevate your life</span>`,
+      description: "Expert-led training programs, nutrition coaching, and a community that pushes you to be your best.",
+      navLinks: ["Programs", "Coaches", "Schedule", "Join"],
+      sections: ["programs", "trainers", "cta"],
+      features: [
+        { title: "Personal Training", desc: "1-on-1 sessions tailored to your goals and fitness level.", emoji: "💪" },
+        { title: "Nutrition Plans", desc: "Custom meal plans designed by certified nutritionists.", emoji: "🥗" },
+        { title: "Group Classes", desc: "High-energy sessions from HIIT to yoga, 7 days a week.", emoji: "🏃" },
+      ],
+      items: [
+        { name: "Strength Foundations", desc: "8-week program · Build muscle & confidence", price: "$49/mo", emoji: "🏋️" },
+        { name: "HIIT Cardio Blast", desc: "6-week program · Burn fat & boost endurance", price: "$39/mo", emoji: "🔥" },
+        { name: "Yoga & Mobility", desc: "Ongoing · Flexibility & recovery focus", price: "$29/mo", emoji: "🧘" },
+        { name: "Elite Performance", desc: "12-week program · Competition prep", price: "$99/mo", emoji: "🏆" },
+      ],
+    },
+    education: {
+      tagline: `Learn skills that <span class='grad'>shape the future</span>`,
+      description: "Expert-crafted courses in technology, design, and business. Learn at your pace, build real projects.",
+      navLinks: ["Courses", "Paths", "Community", "Pricing"],
+      sections: ["courses", "features", "testimonials"],
+      features: [
+        { title: "Project-Based", desc: "Learn by building real-world projects with expert guidance.", emoji: "🛠️" },
+        { title: "Expert Instructors", desc: "Learn from industry professionals at top companies.", emoji: "👨‍🏫" },
+        { title: "Certificates", desc: "Earn recognized credentials to boost your career.", emoji: "📜" },
+      ],
+      items: [
+        { name: "Full-Stack Web Development", desc: "React, Node.js, databases · 12 weeks", price: "$499", emoji: "💻" },
+        { name: "UX/UI Design Mastery", desc: "Figma, research, prototyping · 8 weeks", price: "$399", emoji: "🎨" },
+        { name: "Data Science with Python", desc: "ML, analytics, visualization · 10 weeks", price: "$449", emoji: "📊" },
+        { name: "Digital Marketing", desc: "SEO, ads, social strategy · 6 weeks", price: "$299", emoji: "📱" },
+      ],
+    },
+    travel: {
+      tagline: `Discover your next <span class='grad'>adventure</span>`,
+      description: "Curated travel experiences that connect you with authentic cultures, hidden gems, and unforgettable moments.",
+      navLinks: ["Destinations", "Experiences", "Plan", "About"],
+      sections: ["destinations", "features", "newsletter"],
+      features: [
+        { title: "Local Guides", desc: "Experience destinations through knowledgeable local experts.", emoji: "🗺️" },
+        { title: "Handpicked Stays", desc: "Boutique hotels and unique accommodations vetted by our team.", emoji: "🏨" },
+        { title: "24/7 Support", desc: "Dedicated travel concierge available around the clock.", emoji: "📞" },
+      ],
+      items: [
+        { name: "Kyoto Cultural Immersion", desc: "7 days · Temples, tea ceremonies, local cuisine", price: "$2,499", emoji: "⛩️" },
+        { name: "Amalfi Coast Road Trip", desc: "5 days · Coastal drives, wine tours, beaches", price: "$1,899", emoji: "🏖️" },
+        { name: "Iceland Northern Lights", desc: "4 days · Hot springs, glaciers, aurora hunting", price: "$2,199", emoji: "🌌" },
+        { name: "Marrakech Discovery", desc: "6 days · Souks, desert camp, Atlas Mountains", price: "$1,699", emoji: "🏜️" },
+      ],
+    },
+    photography: {
+      tagline: `Capturing moments that <span class='grad'>last forever</span>`,
+      description: "Professional photography services for weddings, portraits, brands, and editorial. Based in New York.",
+      navLinks: ["Portfolio", "Services", "About", "Book"],
+      sections: ["gallery", "services", "contact"],
+      features: [
+        { title: "Weddings", desc: "Timeless, documentary-style wedding photography.", emoji: "💒" },
+        { title: "Portraits", desc: "Natural light portraits that reveal authentic personality.", emoji: "📸" },
+        { title: "Commercial", desc: "Product and brand photography for digital and print.", emoji: "🏢" },
+      ],
+      items: [
+        { name: "Mountain Dawn", desc: "Landscape · Colorado Rockies", emoji: "🏔️" },
+        { name: "Urban Rhythm", desc: "Street · New York City", emoji: "🌆" },
+        { name: "Golden Hour Portrait", desc: "Portrait · Natural light", emoji: "🌅" },
+        { name: "Product Flatlay", desc: "Commercial · Beauty brand", emoji: "✨" },
+      ],
+    },
+    music: {
+      tagline: `Feel the <span class='grad'>rhythm</span>`,
+      description: "New album 'Echoes' out now. Tour dates, music, merch, and more.",
+      navLinks: ["Music", "Tour", "Merch", "About"],
+      sections: ["latest", "tour", "merch"],
+      features: [
+        { title: "Stream Now", desc: "Available on Spotify, Apple Music, and all platforms.", emoji: "🎵" },
+        { title: "Live Shows", desc: "Intimate venues and festival stages worldwide.", emoji: "🎤" },
+        { title: "Exclusive Merch", desc: "Limited edition drops and tour exclusives.", emoji: "👕" },
+      ],
+      items: [
+        { name: "Echoes (Album)", desc: "12 tracks · Released 2026", emoji: "💿" },
+        { name: "NYC – Brooklyn Steel", desc: "Mar 28 · Doors 7pm", price: "$45", emoji: "🗽" },
+        { name: "LA – The Wiltern", desc: "Apr 5 · Doors 8pm", price: "$50", emoji: "🌴" },
+        { name: "London – Brixton Academy", desc: "Apr 18 · Doors 7:30pm", price: "£40", emoji: "🇬🇧" },
+      ],
+    },
+    real_estate: {
+      tagline: `Find your perfect <span class='grad'>place</span>`,
+      description: "Premium residential and commercial properties. Expert guidance through every step of your journey.",
+      navLinks: ["Listings", "Sell", "About", "Contact"],
+      sections: ["listings", "services", "cta"],
+      features: [
+        { title: "Expert Agents", desc: "Dedicated professionals with deep local market knowledge.", emoji: "👤" },
+        { title: "Virtual Tours", desc: "Explore properties from anywhere with 3D walkthroughs.", emoji: "🏠" },
+        { title: "Market Analysis", desc: "Data-driven pricing and investment insights.", emoji: "📊" },
+      ],
+      items: [
+        { name: "Modern Loft – SoHo", desc: "2BR · 1,200 sqft · Floor-to-ceiling windows", price: "$1.2M", emoji: "🏙️" },
+        { name: "Beachfront Villa", desc: "4BR · Ocean view · Private pool", price: "$2.8M", emoji: "🏖️" },
+        { name: "Downtown Penthouse", desc: "3BR · Rooftop terrace · 360° views", price: "$3.5M", emoji: "🌆" },
+        { name: "Suburban Family Home", desc: "5BR · Large garden · Top-rated schools", price: "$850K", emoji: "🏡" },
+      ],
+    },
+    medical: {
+      tagline: `Your health, <span class='grad'>our priority</span>`,
+      description: "Comprehensive healthcare with a patient-first approach. Accepting new patients.",
+      navLinks: ["Services", "Doctors", "Book", "About"],
+      sections: ["services", "team", "booking"],
+      features: [
+        { title: "General Care", desc: "Preventive health, checkups, and chronic condition management.", emoji: "🩺" },
+        { title: "Telehealth", desc: "Virtual appointments from the comfort of your home.", emoji: "💻" },
+        { title: "Specialists", desc: "Access to a network of board-certified specialists.", emoji: "👨‍⚕️" },
+      ],
+      items: [
+        { name: "Annual Checkup", desc: "Comprehensive health assessment", emoji: "📋" },
+        { name: "Virtual Consultation", desc: "Video appointment · Same-day available", emoji: "📱" },
+        { name: "Lab Work & Testing", desc: "Full panel · Results in 24 hours", emoji: "🔬" },
+        { name: "Wellness Program", desc: "Personalized health plan · Ongoing support", emoji: "💪" },
+      ],
+    },
+    nonprofit: {
+      tagline: `Together, we can <span class='grad'>change the world</span>`,
+      description: "Empowering communities through education, healthcare, and sustainable development since 2010.",
+      navLinks: ["Mission", "Impact", "Get Involved", "Donate"],
+      sections: ["impact", "programs", "donate"],
+      features: [
+        { title: "Education", desc: "Building schools and training teachers in underserved areas.", emoji: "📚" },
+        { title: "Healthcare", desc: "Mobile clinics providing free care to remote communities.", emoji: "🏥" },
+        { title: "Sustainability", desc: "Clean water and renewable energy projects.", emoji: "🌱" },
+      ],
+      items: [
+        { name: "50,000+", desc: "Students educated through our programs", emoji: "🎓" },
+        { name: "120", desc: "Communities served across 15 countries", emoji: "🌍" },
+        { name: "95¢", desc: "Of every dollar goes directly to programs", emoji: "💚" },
+        { name: "200+", desc: "Active volunteers worldwide", emoji: "🤝" },
+      ],
+    },
+    event: {
+      tagline: `The event of <span class='grad'>the year</span>`,
+      description: "Join industry leaders, innovators, and creators for two days of talks, workshops, and networking.",
+      navLinks: ["Speakers", "Schedule", "Tickets", "FAQ"],
+      sections: ["speakers", "schedule", "tickets"],
+      features: [
+        { title: "30+ Speakers", desc: "World-class experts sharing cutting-edge insights.", emoji: "🎤" },
+        { title: "Workshops", desc: "Hands-on sessions to level up your skills.", emoji: "🛠️" },
+        { title: "Networking", desc: "Connect with 2,000+ attendees from around the world.", emoji: "🤝" },
+      ],
+      items: [
+        { name: "Early Bird", desc: "Full access · All sessions · Lunch included", price: "$199", emoji: "🎟️" },
+        { name: "Regular", desc: "Full access · All sessions · Lunch included", price: "$349", emoji: "🎫" },
+        { name: "VIP", desc: "Front row · Speaker dinner · Exclusive swag", price: "$599", emoji: "⭐" },
+        { name: "Group (5+)", desc: "20% discount · Team coordination", price: "$279/ea", emoji: "👥" },
+      ],
+    },
+  };
+
+  const content = contentMap[type] || {
+    tagline: `Build something <span class='grad'>extraordinary</span>`,
+    description: prompt.length > 120 ? prompt.slice(0, 120) + "..." : prompt || "Transform your ideas into reality with cutting-edge technology.",
+    navLinks: ["Features", "About", "Pricing", "Contact"],
+    sections: ["features", "about", "cta"],
+    features: [
+      { title: "Powerful & Fast", desc: "Built for performance with modern architecture and optimized delivery.", emoji: "⚡" },
+      { title: "Easy to Use", desc: "Intuitive interface designed for everyone, from beginners to experts.", emoji: "✨" },
+      { title: "Always Secure", desc: "Enterprise-grade security with encryption and compliance built in.", emoji: "🔒" },
+    ],
+    items: [
+      { name: "Getting Started", desc: "Everything you need to begin", emoji: "🚀" },
+      { name: "Advanced Features", desc: "Unlock the full potential", emoji: "💎" },
+      { name: "Enterprise", desc: "Custom solutions for teams", emoji: "🏢" },
+    ],
+  };
+
+  return content;
+}
+
+function buildSectionHTML(section: string, parsed: ParsedPrompt): string {
+  const c = parsed.colorScheme;
+  const displayFont = parsed.font.display || parsed.font.family;
+
+  switch (section) {
+    case "projects":
+    case "gallery":
+      return `<section style="padding:6rem 2rem;max-width:1100px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:3rem"><div style="width:6px;height:6px;border-radius:50%;background:${c.accent}"></div><span style="color:${c.accent};font-weight:600;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase">${section === "gallery" ? "Portfolio" : "Featured Work"}</span></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2rem">
+          ${parsed.items.map((item, i) => {
+            const gradients = ["135deg,#1e1b4b,#312e81","135deg,#064e3b,#047857","135deg,#7c2d12,#b45309","135deg,#4c1d95,#7c3aed"];
+            const g = gradients[i % gradients.length];
+            return `<div style="background:${c.card};border:1px solid ${c.border};border-radius:20px;overflow:hidden;transition:transform .3s">
+              <div style="height:220px;background:linear-gradient(${g});display:flex;align-items:center;justify-content:center;font-size:4rem">${item.emoji}</div>
+              <div style="padding:1.75rem"><h3 style="color:${c.text};font-size:1.15rem;font-weight:700;margin-bottom:.5rem">${item.name}</h3><p style="color:${c.muted};font-size:.88rem;line-height:1.65">${item.desc}</p></div>
+            </div>`;
+          }).join("")}
+        </div>
+      </section>`;
+
+    case "products":
+    case "listings":
+      return `<section style="padding:6rem 2rem;max-width:1200px;margin:0 auto">
+        <div style="display:flex;justify-content:space-between;align-items:end;margin-bottom:3rem"><div><span style="color:${c.accent};font-weight:600;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:.5rem">${section === "listings" ? "Featured Properties" : "New Arrivals"}</span><h2 style="font-family:${displayFont};font-size:2.5rem;font-weight:700;color:${c.text};letter-spacing:-.02em">${section === "listings" ? "Latest Listings" : "Curated for You"}</h2></div><a href="#" style="color:${c.muted};font-size:.85rem;text-decoration:none;border-bottom:1px solid ${c.muted};padding-bottom:2px">View All →</a></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem">
+          ${parsed.items.map((item, i) => {
+            const bgs = ["180deg,#f0ede8,#e8e4dd","180deg,#e8edf0,#dde4e8","180deg,#ede8f0,#e4dde8","180deg,#e8f0ec,#dde8e2"];
+            const bg = parsed.tone === "light" ? bgs[i % bgs.length] : ["135deg,#1e1b4b,#312e81","135deg,#064e3b,#047857","135deg,#4c1d95,#7c3aed","135deg,#7c2d12,#b45309"][i % 4];
+            return `<div style="cursor:pointer"><div style="aspect-ratio:${section === "listings" ? "16/10" : "3/4"};background:linear-gradient(${bg});border-radius:${parsed.tone === "light" ? "4px" : "16px"};display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:1.25rem;position:relative;overflow:hidden">${item.emoji}${i === 0 ? `<div style="position:absolute;top:16px;left:16px;background:${c.accent};color:#fff;padding:4px 12px;font-size:.7rem;font-weight:600;letter-spacing:.05em;border-radius:4px">NEW</div>` : ""}</div><h3 style="color:${c.text};font-weight:600;font-size:.95rem;margin-bottom:.25rem">${item.name}</h3><p style="color:${c.muted};font-size:.85rem;margin-bottom:.5rem">${item.desc}</p>${item.price ? `<p style="color:${c.text};font-weight:700;font-size:1rem">${item.price}</p>` : ""}</div>`;
+          }).join("")}
+        </div>
+      </section>`;
+
+    case "menu":
+      return `<section style="padding:6rem 2rem;max-width:900px;margin:0 auto">
+        <div style="text-align:center;margin-bottom:4rem"><span style="color:${c.accent};font-weight:600;font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:.75rem">From Our Kitchen</span><h2 style="font-family:${displayFont};font-size:2.5rem;font-weight:700;color:${c.text}">Signature Dishes</h2></div>
+        <div style="display:flex;flex-direction:column;gap:1px;background:${c.border};border-radius:20px;overflow:hidden">
+          ${parsed.items.map((item, i) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:2rem 2.5rem;background:${c.card}"><div style="flex:1"><div style="display:flex;align-items:center;gap:12px;margin-bottom:.5rem"><span style="font-size:1.5rem">${item.emoji}</span><h3 style="color:${c.text};font-family:${displayFont};font-weight:700;font-size:1.2rem">${item.name}</h3>${i === 0 ? `<span style="background:${c.accentGradient};color:#fff;padding:3px 10px;border-radius:4px;font-size:.65rem;font-weight:700">CHEF'S PICK</span>` : ""}</div><p style="color:${c.muted};font-size:.88rem;line-height:1.6;padding-left:2.75rem">${item.desc}</p></div>${item.price ? `<span style="color:${c.text};font-family:${displayFont};font-size:1.5rem;font-weight:700;margin-left:2rem">${item.price}</span>` : ""}</div>`).join("")}
+        </div>
+      </section>`;
+
+    case "features":
+    case "services":
+    case "programs":
+      return `<section style="padding:7rem 2rem;max-width:1100px;margin:0 auto">
+        <div style="text-align:center;margin-bottom:4rem"><span style="color:${c.accent};font-weight:600;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.75rem">${section === "services" ? "Our Services" : section === "programs" ? "Programs" : "Features"}</span><h2 style="font-size:2.5rem;font-weight:800;color:${c.text};letter-spacing:-.03em">${section === "services" ? "What We Do" : section === "programs" ? "Find Your Program" : "Everything you need"}</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem">
+          ${parsed.features.map(f => `<div style="background:${c.card};border:1px solid ${c.border};border-radius:20px;padding:2.5rem;transition:border-color .3s"><div style="width:52px;height:52px;background:${c.accent}18;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.5rem;border:1px solid ${c.accent}25">${f.emoji}</div><h3 style="color:${c.text};font-size:1.2rem;font-weight:700;margin-bottom:.75rem">${f.title}</h3><p style="color:${c.muted};font-size:.92rem;line-height:1.75">${f.desc}</p></div>`).join("")}
+        </div>
+      </section>`;
+
+    case "skills":
+      const skills = [
+        { name: "React", emoji: "⚛️", cat: "Frontend" }, { name: "TypeScript", emoji: "🔷", cat: "Language" },
+        { name: "Tailwind", emoji: "🌊", cat: "Styling" }, { name: "Node.js", emoji: "🔥", cat: "Backend" },
+        { name: "PostgreSQL", emoji: "🗄️", cat: "Database" }, { name: "Figma", emoji: "🎨", cat: "Design" },
+      ];
+      return `<section style="padding:6rem 2rem;max-width:1100px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:3rem"><div style="width:6px;height:6px;border-radius:50%;background:${c.accent}"></div><span style="color:${c.accent};font-weight:600;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase">Tech Stack</span></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem">
+          ${skills.map(s => `<div style="background:${c.card};border:1px solid ${c.border};border-radius:16px;padding:1.5rem;text-align:center"><div style="font-size:2rem;margin-bottom:.5rem">${s.emoji}</div><div style="color:${c.text};font-weight:600;font-size:.9rem">${s.name}</div><div style="color:${c.muted};font-size:.75rem;margin-top:2px">${s.cat}</div></div>`).join("")}
+        </div>
+      </section>`;
+
+    case "pricing":
+      return `<section style="padding:6rem 2rem;background:${parsed.tone === "dark" ? c.card : "#f8f8f6"}">
+        <div style="max-width:1000px;margin:0 auto;text-align:center">
+          <span style="color:${c.accent};font-weight:600;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.75rem">Pricing</span>
+          <h2 style="font-size:2.5rem;font-weight:800;color:${c.text};margin-bottom:4rem;letter-spacing:-.03em">Start free, scale infinitely</h2>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.5rem;max-width:950px;margin:0 auto">
+            ${parsed.items.map((item, i) => {
+              const isPop = i === 1;
+              return `<div style="background:${parsed.tone === "dark" ? "#111113" : "#fff"};border:${isPop ? `2px solid ${c.accent}` : `1px solid ${c.border}`};border-radius:20px;padding:3rem;text-align:left;position:relative;${isPop ? `box-shadow:0 0 60px ${c.accent}20` : ""}">
+                ${isPop ? `<div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:${c.accentGradient};color:#fff;font-size:.75rem;font-weight:700;padding:6px 20px;border-radius:100px">POPULAR</div>` : ""}
+                <div style="font-size:1.5rem;margin-bottom:.5rem">${item.emoji}</div>
+                <h3 style="color:${c.text};font-weight:700;font-size:1.1rem">${item.name}</h3>
+                <p style="color:${c.muted};font-size:.85rem;margin:.5rem 0 1.5rem">${item.desc}</p>
+                <div style="margin-bottom:2rem"><span style="font-size:2.5rem;font-weight:800;color:${c.text}">${item.price || "Free"}</span></div>
+                <a href="#" style="display:block;text-align:center;padding:14px;${isPop ? `background:${c.accentGradient};color:#fff;font-weight:700` : `border:1px solid ${c.border};color:${c.text};font-weight:600`};border-radius:12px;text-decoration:none;font-size:.92rem">Get Started</a>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>
+      </section>`;
+
+    case "dashboard":
+      return `<section style="padding:4rem 2rem;max-width:900px;margin:0 auto">
+        <div style="background:${c.card};border:1px solid ${c.border};border-radius:20px;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,0.3)">
+          <div style="padding:14px 18px;border-bottom:1px solid ${c.border};display:flex;align-items:center;gap:8px"><div style="display:flex;gap:6px"><div style="width:12px;height:12px;border-radius:50%;background:#ef4444"></div><div style="width:12px;height:12px;border-radius:50%;background:#eab308"></div><div style="width:12px;height:12px;border-radius:50%;background:#22c55e"></div></div><div style="flex:1;text-align:center;color:${c.muted};font-size:.8rem">${parsed.brandName.toLowerCase()}.app/dashboard</div></div>
+          <div style="display:grid;grid-template-columns:180px 1fr;min-height:320px">
+            <div style="border-right:1px solid ${c.border};padding:16px;display:flex;flex-direction:column;gap:4px">
+              <div style="padding:8px 12px;background:${c.accent}15;border-radius:8px;color:${c.accent};font-size:.8rem;font-weight:500">Dashboard</div>
+              <div style="padding:8px 12px;color:${c.muted};font-size:.8rem">Analytics</div>
+              <div style="padding:8px 12px;color:${c.muted};font-size:.8rem">Projects</div>
+              <div style="padding:8px 12px;color:${c.muted};font-size:.8rem">Settings</div>
+            </div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                <div style="background:${c.bg};border:1px solid ${c.border};border-radius:12px;padding:16px"><div style="color:${c.muted};font-size:.75rem;margin-bottom:4px">Revenue</div><div style="color:${c.text};font-size:1.5rem;font-weight:700">$48.2k</div><div style="color:#22c55e;font-size:.75rem;margin-top:4px">↑ 12.5%</div></div>
+                <div style="background:${c.bg};border:1px solid ${c.border};border-radius:12px;padding:16px"><div style="color:${c.muted};font-size:.75rem;margin-bottom:4px">Users</div><div style="color:${c.text};font-size:1.5rem;font-weight:700">2,847</div><div style="color:#22c55e;font-size:.75rem;margin-top:4px">↑ 8.3%</div></div>
+                <div style="background:${c.bg};border:1px solid ${c.border};border-radius:12px;padding:16px"><div style="color:${c.muted};font-size:.75rem;margin-bottom:4px">Growth</div><div style="color:${c.text};font-size:1.5rem;font-weight:700">24%</div><div style="color:${c.accent};font-size:.75rem;margin-top:4px">↑ 4.1%</div></div>
+              </div>
+              <div style="flex:1;background:${c.bg};border:1px solid ${c.border};border-radius:12px;min-height:140px;position:relative;overflow:hidden"><svg viewBox="0 0 400 120" style="width:100%;height:100%;position:absolute;bottom:0"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${c.accent}" stop-opacity="0.3"/><stop offset="100%" stop-color="${c.accent}" stop-opacity="0"/></linearGradient></defs><path d="M0 100 Q50 80 100 70 T200 50 T300 30 T400 20 L400 120 L0 120Z" fill="url(#cg)"/><path d="M0 100 Q50 80 100 70 T200 50 T300 30 T400 20" fill="none" stroke="${c.accent}" stroke-width="2"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </section>`;
+
+    case "articles":
+    case "featured":
+      return `<section style="padding:5rem 2rem;max-width:1000px;margin:0 auto">
+        ${section === "featured" && parsed.items.length > 0 ? `<article style="display:grid;grid-template-columns:1.2fr 1fr;gap:0;background:${c.card};border:1px solid ${c.border};border-radius:24px;overflow:hidden;margin-bottom:3rem;box-shadow:0 4px 30px rgba(0,0,0,.04)"><div style="background:linear-gradient(135deg,#fef3c7,#fde68a,#fbbf24);min-height:320px;display:flex;align-items:center;justify-content:center;font-size:5rem">${parsed.items[0].emoji}</div><div style="padding:3rem;display:flex;flex-direction:column;justify-content:center"><span style="background:${c.accent}15;color:${c.accent};padding:4px 12px;border-radius:8px;font-size:.75rem;font-weight:600;width:fit-content;margin-bottom:1rem">Featured</span><h2 style="font-family:${displayFont};font-size:1.75rem;font-weight:800;color:${c.text};line-height:1.3;margin-bottom:1rem">${parsed.items[0].name}</h2><p style="color:${c.muted};font-size:.95rem;line-height:1.8">${parsed.items[0].desc}</p></div></article>` : ""}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem">
+          ${parsed.items.slice(section === "featured" ? 1 : 0).map((item, i) => {
+            const gradients = ["135deg,#dbeafe,#93c5fd","135deg,#d1fae5,#6ee7b7","135deg,#fce7f3,#f9a8d4","135deg,#e0e7ff,#a5b4fc"];
+            return `<article style="background:${c.card};border:1px solid ${c.border};border-radius:20px;overflow:hidden"><div style="height:200px;background:linear-gradient(${gradients[i % gradients.length]});display:flex;align-items:center;justify-content:center;font-size:3rem">${item.emoji}</div><div style="padding:1.75rem"><h3 style="font-family:${displayFont};font-size:1.15rem;font-weight:700;color:${c.text};margin-bottom:.5rem">${item.name}</h3><p style="color:${c.muted};font-size:.88rem;line-height:1.7;margin-bottom:1rem">${item.desc}</p><span style="color:${c.accent};font-size:.78rem;font-weight:600">Read →</span></div></article>`;
+          }).join("")}
+        </div>
+      </section>`;
+
+    case "contact":
+    case "booking":
+    case "reservation":
+      return `<section style="padding:5rem 2rem;max-width:600px;margin:0 auto;text-align:center">
+        <h2 style="font-family:${displayFont};color:${c.text};font-size:2rem;font-weight:700;margin-bottom:.75rem">${section === "reservation" ? "Reserve Your Table" : section === "booking" ? "Book an Appointment" : "Get in Touch"}</h2>
+        <p style="color:${c.muted};margin-bottom:2.5rem">${section === "reservation" ? "Tuesday – Sunday · 5:00 PM – 11:00 PM" : section === "booking" ? "Available Monday through Friday, 9am – 5pm" : "Have a project in mind? Let's talk."}</p>
+        <div style="display:flex;flex-direction:column;gap:1rem;max-width:400px;margin:0 auto;text-align:left">
+          <input placeholder="${section === "reservation" ? "Name" : "Your name"}" style="padding:14px 18px;background:${c.card};border:1px solid ${c.border};border-radius:12px;color:${c.text};font-size:.92rem;outline:none;font-family:inherit" />
+          <input placeholder="${section === "reservation" ? "Phone" : "Email"}" style="padding:14px 18px;background:${c.card};border:1px solid ${c.border};border-radius:12px;color:${c.text};font-size:.92rem;outline:none;font-family:inherit" />
+          ${section === "reservation" ? `<input type="date" style="padding:14px 18px;background:${c.card};border:1px solid ${c.border};border-radius:12px;color:${c.text};font-size:.92rem;outline:none;font-family:inherit" />` : `<textarea placeholder="Your message" rows="4" style="padding:14px 18px;background:${c.card};border:1px solid ${c.border};border-radius:12px;color:${c.text};font-size:.92rem;outline:none;font-family:inherit;resize:none"></textarea>`}
+          <button style="padding:16px;background:${c.accentGradient};color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;letter-spacing:.02em">${section === "reservation" ? "Reserve Now" : section === "booking" ? "Book Appointment" : "Send Message"}</button>
+        </div>
+      </section>`;
+
+    case "newsletter":
+      return `<section style="padding:5rem 2rem;background:${parsed.tone === "dark" ? c.card : "#1a1a1a"};margin-top:2rem">
+        <div style="max-width:600px;margin:0 auto;text-align:center"><h2 style="font-family:${displayFont};color:${parsed.tone === "dark" ? c.text : "#fafafa"};font-size:2rem;font-weight:700;margin-bottom:1rem">Stay in the loop</h2><p style="color:${parsed.tone === "dark" ? c.muted : "#9b9b9b"};margin-bottom:2rem;font-size:.95rem">Get updates delivered to your inbox.</p><div style="display:flex;gap:12px;max-width:440px;margin:0 auto"><input type="email" placeholder="your@email.com" style="flex:1;padding:14px 18px;background:${parsed.tone === "dark" ? c.bg : "#2a2a2a"};border:1px solid ${parsed.tone === "dark" ? c.border : "#3a3a3a"};border-radius:12px;color:#fafafa;font-size:.92rem;outline:none;font-family:inherit" /><button style="padding:14px 28px;background:${c.accentGradient};color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.92rem;cursor:pointer">Subscribe</button></div></div>
+      </section>`;
+
+    case "cta":
+    case "donate":
+      return `<section style="padding:5rem 2rem;background:${parsed.tone === "dark" ? c.card : "#f8f8f6"}">
+        <div style="max-width:700px;margin:0 auto;text-align:center">
+          <h2 style="font-size:2.2rem;font-weight:800;color:${c.text};margin-bottom:1rem;letter-spacing:-.02em">${section === "donate" ? "Make a Difference Today" : "Ready to get started?"}</h2>
+          <p style="color:${c.muted};font-size:1rem;margin-bottom:2.5rem">${section === "donate" ? "Every contribution creates lasting impact in communities around the world." : "Join thousands who already trust us."}</p>
+          <a href="#" style="display:inline-block;padding:16px 48px;background:${c.accentGradient};color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 40px ${c.accent}30">${section === "donate" ? "Donate Now" : "Start Free"}</a>
+        </div>
+      </section>`;
+
+    case "impact":
+      return `<section style="padding:6rem 2rem;max-width:1000px;margin:0 auto;text-align:center">
+        <span style="color:${c.accent};font-weight:600;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.75rem">Our Impact</span>
+        <h2 style="font-size:2.5rem;font-weight:800;color:${c.text};margin-bottom:4rem">Numbers that matter</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem">
+          ${parsed.items.map(item => `<div style="background:${c.card};border:1px solid ${c.border};border-radius:20px;padding:2.5rem"><div style="font-size:2.5rem;margin-bottom:.5rem">${item.emoji}</div><div style="font-size:2.5rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">${item.name}</div><p style="color:${c.muted};font-size:.9rem;margin-top:.5rem">${item.desc}</p></div>`).join("")}
+        </div>
+      </section>`;
+
+    case "testimonial":
+    case "testimonials":
+      return `<section style="padding:5rem 2rem;max-width:800px;margin:0 auto;text-align:center">
+        <span style="color:${c.accent};font-weight:600;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:2rem">What People Say</span>
+        <blockquote style="background:${c.card};border:1px solid ${c.border};border-radius:24px;padding:3rem;margin:0"><p style="color:${c.text};font-family:${displayFont};font-size:1.3rem;font-weight:500;line-height:1.7;font-style:italic;margin-bottom:2rem">"Absolutely incredible experience. The attention to detail and quality exceeded all our expectations. We'll definitely be back."</p><div style="display:flex;align-items:center;justify-content:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:${c.accentGradient}"></div><div style="text-align:left"><div style="color:${c.text};font-weight:600;font-size:.9rem">Sarah Mitchell</div><div style="color:${c.muted};font-size:.8rem">Verified Customer</div></div></div></blockquote>
+      </section>`;
+
+    case "team":
+    case "trainers":
+    case "speakers":
+      const roles = section === "trainers" ? ["Head Coach", "Yoga Instructor", "Nutritionist"] : section === "speakers" ? ["Keynote Speaker", "Workshop Lead", "Panelist"] : ["CEO & Founder", "Head of Design", "Lead Engineer"];
+      const names = ["Alex Rivera", "Sarah Chen", "Marcus Kim"];
+      return `<section style="padding:6rem 2rem;max-width:1000px;margin:0 auto">
+        <div style="text-align:center;margin-bottom:4rem"><span style="color:${c.accent};font-weight:600;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.75rem">${section === "speakers" ? "Speakers" : "Our Team"}</span><h2 style="font-size:2.5rem;font-weight:800;color:${c.text}">${section === "speakers" ? "Featured Speakers" : "Meet the Team"}</h2></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2rem">
+          ${names.map((name, i) => `<div style="text-align:center"><div style="width:120px;height:120px;border-radius:50%;background:${c.accentGradient};margin:0 auto 1.5rem;opacity:.8"></div><h3 style="color:${c.text};font-weight:700;font-size:1.1rem">${name}</h3><p style="color:${c.accent};font-size:.85rem;font-weight:500;margin-top:.25rem">${roles[i]}</p></div>`).join("")}
+        </div>
+      </section>`;
+
+    case "schedule":
+      return `<section style="padding:6rem 2rem;max-width:800px;margin:0 auto">
+        <div style="text-align:center;margin-bottom:3rem"><h2 style="font-size:2.5rem;font-weight:800;color:${c.text}">Schedule</h2></div>
+        <div style="display:flex;flex-direction:column;gap:1px;background:${c.border};border-radius:16px;overflow:hidden">
+          ${["9:00 AM – Opening Keynote", "10:30 AM – Workshop: Building at Scale", "12:00 PM – Lunch & Networking", "1:30 PM – Panel: Future of Technology", "3:00 PM – Lightning Talks", "5:00 PM – Closing & Happy Hour"].map(s => `<div style="padding:1.25rem 2rem;background:${c.card};display:flex;justify-content:space-between;align-items:center"><span style="color:${c.text};font-weight:500;font-size:.95rem">${s}</span></div>`).join("")}
+        </div>
+      </section>`;
+
+    case "tickets":
+      return buildSectionHTML("pricing", parsed);
+
+    case "courses":
+      return buildSectionHTML("products", parsed);
+
+    case "destinations":
+      return buildSectionHTML("products", parsed);
+
+    case "latest":
+    case "tour":
+    case "merch":
+      return buildSectionHTML("products", parsed);
+
+    case "clients":
+      return `<section style="padding:4rem 2rem;border-top:1px solid ${c.border}">
+        <div style="max-width:900px;margin:0 auto;text-align:center"><p style="color:${c.muted};font-size:.85rem;margin-bottom:2rem;letter-spacing:.1em;text-transform:uppercase">Trusted by leading brands</p><div style="display:flex;justify-content:center;gap:4rem;flex-wrap:wrap;opacity:.5">${["Acme Corp","TechStart","Globex","Initech","Umbrella"].map(n => `<span style="color:${c.text};font-weight:700;font-size:1.3rem;letter-spacing:-.02em">${n}</span>`).join("")}</div></div>
+      </section>`;
+
+    default:
+      return "";
+  }
+}
+
+function buildFullPage(parsed: ParsedPrompt, contentSections: string[]): string {
+  const c = parsed.colorScheme;
+  const fontUrl = parsed.font.url;
+  const fontFamily = parsed.font.family;
+  const displayFont = parsed.font.display || fontFamily;
+
+  const sectionsHTML = contentSections.map(s => buildSectionHTML(s, parsed)).join("\n");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -304,28 +673,28 @@ export function generateHTMLFromPrompt(prompt: string): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="${fontUrl}" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: ${fontFamily}, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: ${t.bgColor}; color: ${t.textColor}; min-height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { font-family: ${fontFamily}, -apple-system, BlinkMacSystemFont, sans-serif; background: ${c.bg}; color: ${c.text}; min-height: 100vh; -webkit-font-smoothing: antialiased; }
     a { text-decoration: none; transition: opacity 0.2s; }
     a:hover { opacity: 0.85; }
-    ::selection { background: ${t.accentColor}40; }
+    ::selection { background: ${c.accent}40; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: ${t.borderColor}; border-radius: 3px; }
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 2.5rem; border-bottom: 1px solid ${t.borderColor}; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 50; background: ${t.bgColor}e6; }
-    .nav-brand { font-size: 1.2rem; font-weight: 800; background: ${t.accentGradient}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.02em; }
+    ::-webkit-scrollbar-thumb { background: ${c.border}; border-radius: 3px; }
+    .grad { background: ${c.accentGradient}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 2.5rem; border-bottom: 1px solid ${c.border}; backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 50; background: ${c.bg}e6; }
+    .nav-brand { font-size: 1.2rem; font-weight: 800; background: ${c.accentGradient}; -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.02em; }
     .nav-links { display: flex; gap: 2.5rem; list-style: none; }
-    .nav-links a { color: ${t.mutedColor}; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: ${t.textColor}; opacity: 1; }
-    .nav-cta { padding: 9px 22px; background: ${t.accentGradient}; color: #fff; border-radius: 10px; font-size: 0.85rem; font-weight: 600; letter-spacing: -0.01em; }
+    .nav-links a { color: ${c.muted}; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: ${c.text}; opacity: 1; }
+    .nav-cta { padding: 9px 22px; background: ${c.accentGradient}; color: #fff; border-radius: 10px; font-size: 0.85rem; font-weight: 600; }
     .hero { text-align: center; padding: 7rem 2rem 4rem; max-width: 850px; margin: 0 auto; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: ${t.accentColor}10; color: ${t.accentColor}; font-size: 0.8rem; font-weight: 600; padding: 8px 18px; border-radius: 100px; margin-bottom: 2rem; border: 1px solid ${t.accentColor}25; letter-spacing: 0.02em; }
-    .hero h1 { font-size: clamp(2.5rem, 5.5vw, 4rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.04em; margin-bottom: 1.5rem; color: ${t.textColor}; }
-    .hero p { color: ${t.mutedColor}; font-size: 1.15rem; line-height: 1.75; max-width: 620px; margin: 0 auto; }
-    footer { text-align: center; padding: 3.5rem 2rem; border-top: 1px solid ${t.borderColor}; color: ${t.mutedColor}; font-size: 0.82rem; margin-top: 4rem; }
-    footer a { color: ${t.accentColor}; font-weight: 600; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: ${c.accent}10; color: ${c.accent}; font-size: 0.8rem; font-weight: 600; padding: 8px 18px; border-radius: 100px; margin-bottom: 2rem; border: 1px solid ${c.accent}25; }
+    .hero h1 { font-size: clamp(2.5rem, 5.5vw, 4rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.04em; margin-bottom: 1.5rem; }
+    .hero p { color: ${c.muted}; font-size: 1.15rem; line-height: 1.75; max-width: 620px; margin: 0 auto; }
+    footer { text-align: center; padding: 3.5rem 2rem; border-top: 1px solid ${c.border}; color: ${c.muted}; font-size: 0.82rem; margin-top: 4rem; }
+    footer a { color: ${c.accent}; font-weight: 600; }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     .hero { animation: fadeInUp 0.8s ease-out; }
     section { animation: fadeInUp 0.6s ease-out; }
@@ -339,124 +708,62 @@ export function generateHTMLFromPrompt(prompt: string): string {
 </head>
 <body>
   <nav>
-    <span class="nav-brand">${t.navBrand}</span>
+    <span class="nav-brand">${parsed.brandName}</span>
     <ul class="nav-links">
-      ${t.navLinks.map(l => `<li><a href="#">${l}</a></li>`).join("")}
+      ${parsed.navLinks.map(l => `<li><a href="#">${l}</a></li>`).join("")}
     </ul>
     <a href="#" class="nav-cta">Get Started</a>
   </nav>
   <div class="hero">
     <div class="hero-badge">✨ Built with Sayo.ai</div>
-    <h1>${t.title}</h1>
-    <p>${t.subtitle}</p>
-    ${t.heroExtra || ""}
+    <h1>${parsed.tagline}</h1>
+    <p>${parsed.description}</p>
+    <div style="display:flex;gap:16px;margin-top:2.5rem;justify-content:center;flex-wrap:wrap">
+      <a href="#" style="padding:15px 36px;background:${c.accentGradient};color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 30px ${c.accent}40">${parsed.type === "ecommerce" ? "Shop Now" : parsed.type === "restaurant" ? "Reserve a Table" : parsed.type === "fitness" ? "Start Training" : parsed.type === "event" ? "Get Tickets" : parsed.type === "nonprofit" ? "Donate Now" : "Get Started"}</a>
+      <a href="#" style="padding:15px 36px;background:${c.text}08;border:1px solid ${c.border};color:${c.text};border-radius:14px;text-decoration:none;font-weight:500;font-size:1rem;backdrop-filter:blur(12px)">Learn More →</a>
+    </div>
+    ${parsed.type === "portfolio" ? `<div style="display:flex;justify-content:center;gap:2.5rem;margin-top:3rem;padding-top:3rem;border-top:1px solid ${c.border}"><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">50+</div><div style="color:${c.muted};font-size:.8rem">Projects</div></div><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">5yr</div><div style="color:${c.muted};font-size:.8rem">Experience</div></div><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">30+</div><div style="color:${c.muted};font-size:.8rem">Clients</div></div></div>` : ""}
+    ${parsed.type === "saas" ? `<div style="margin-top:1.5rem;color:${c.muted};font-size:.85rem">Trusted by 10,000+ developers</div>` : ""}
   </div>
-  ${t.sections}
+  ${sectionsHTML}
   <footer>Built with <a href="#">Sayo.ai</a> — AI-Powered Website Builder</footer>
 </body>
 </html>`;
 }
 
-// Generate multiple pages based on prompt
-export function generateMultiPageHTML(prompt: string): { name: string; html: string }[] {
-  const p = prompt.toLowerCase();
-  const mainPage = generateHTMLFromPrompt(prompt);
-  const pages: { name: string; html: string }[] = [{ name: "Home", html: mainPage }];
+// Keep backward compat
+export function generateHTMLFromPrompt(prompt: string): string {
+  const parsed = parsePrompt(prompt);
+  return buildFullPage(parsed, parsed.sections);
+}
 
-  // Generate additional pages based on detected type
-  if (p.includes("portfolio") || p.includes("personal") || p.includes("resume")) {
-    pages.push({ name: "About", html: generateAboutPage(prompt) });
-    pages.push({ name: "Contact", html: generateContactPage(prompt) });
-  } else if (p.includes("blog") || p.includes("article") || p.includes("magazine")) {
-    pages.push({ name: "Article", html: generateArticlePage(prompt) });
-    pages.push({ name: "About", html: generateAboutPage(prompt) });
-  } else if (p.includes("ecommerce") || p.includes("e-commerce") || p.includes("shop") || p.includes("store")) {
-    pages.push({ name: "Products", html: generateProductsPage(prompt) });
-    pages.push({ name: "Cart", html: generateCartPage(prompt) });
-  } else if (p.includes("restaurant") || p.includes("food") || p.includes("cafe") || p.includes("menu")) {
-    pages.push({ name: "Full Menu", html: generateMenuPage(prompt) });
-    pages.push({ name: "Reservations", html: generateReservationPage(prompt) });
-  } else if (p.includes("landing") || p.includes("saas") || p.includes("startup") || p.includes("app")) {
-    pages.push({ name: "Pricing", html: generatePricingPage(prompt) });
-    pages.push({ name: "Docs", html: generateDocsPage(prompt) });
-  } else {
-    pages.push({ name: "About", html: generateAboutPage(prompt) });
+export function generateMultiPageHTML(prompt: string): { name: string; html: string }[] {
+  const parsed = parsePrompt(prompt);
+  const pages: { name: string; html: string }[] = [{ name: "Home", html: buildFullPage(parsed, parsed.sections) }];
+
+  // Generate sub-pages based on type
+  const subPageMap: Record<string, { name: string; sections: string[] }[]> = {
+    portfolio: [{ name: "About", sections: ["skills", "testimonial", "contact"] }, { name: "Contact", sections: ["contact"] }],
+    ecommerce: [{ name: "Products", sections: ["products"] }, { name: "Cart", sections: ["pricing", "newsletter"] }],
+    restaurant: [{ name: "Full Menu", sections: ["menu"] }, { name: "Reservations", sections: ["reservation"] }],
+    blog: [{ name: "Articles", sections: ["articles"] }, { name: "About", sections: ["features", "newsletter"] }],
+    saas: [{ name: "Pricing", sections: ["pricing", "cta"] }, { name: "Features", sections: ["features", "dashboard"] }],
+    agency: [{ name: "Work", sections: ["projects", "clients"] }, { name: "Contact", sections: ["contact"] }],
+    fitness: [{ name: "Programs", sections: ["products", "trainers"] }, { name: "Join", sections: ["pricing", "cta"] }],
+    education: [{ name: "Courses", sections: ["products", "features"] }, { name: "Pricing", sections: ["pricing"] }],
+    travel: [{ name: "Destinations", sections: ["products", "features"] }, { name: "Plan", sections: ["contact"] }],
+    photography: [{ name: "Gallery", sections: ["gallery"] }, { name: "Book", sections: ["pricing", "contact"] }],
+    music: [{ name: "Tour", sections: ["products"] }, { name: "Merch", sections: ["products"] }],
+    real_estate: [{ name: "Listings", sections: ["listings"] }, { name: "Contact", sections: ["contact"] }],
+    medical: [{ name: "Services", sections: ["features", "team"] }, { name: "Book", sections: ["booking"] }],
+    nonprofit: [{ name: "Impact", sections: ["impact", "features"] }, { name: "Donate", sections: ["donate"] }],
+    event: [{ name: "Schedule", sections: ["schedule", "speakers"] }, { name: "Tickets", sections: ["tickets"] }],
+  };
+
+  const subPages = subPageMap[parsed.type] || [{ name: "About", sections: ["features", "contact"] }];
+  for (const sub of subPages) {
+    pages.push({ name: sub.name, html: buildFullPage(parsed, sub.sections) });
   }
 
   return pages;
-}
-
-function makePageShell(title: string, bg: string, textColor: string, accentGradient: string, borderColor: string, mutedColor: string, accentColor: string, fontUrl: string, fontFamily: string, navBrand: string, navLinks: string[], content: string): string {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><link href="${fontUrl}" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:${fontFamily},'Inter',-apple-system,sans-serif;background:${bg};color:${textColor};min-height:100vh;-webkit-font-smoothing:antialiased}a{text-decoration:none;transition:opacity .2s}a:hover{opacity:.85}nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 2.5rem;border-bottom:1px solid ${borderColor};backdrop-filter:blur(20px);position:sticky;top:0;z-index:50;background:${bg}e6}.nav-brand{font-size:1.2rem;font-weight:800;background:${accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent}.nav-links{display:flex;gap:2.5rem;list-style:none}.nav-links a{color:${mutedColor};font-size:.88rem;font-weight:500}.nav-cta{padding:9px 22px;background:${accentGradient};color:#fff;border-radius:10px;font-size:.85rem;font-weight:600}footer{text-align:center;padding:3.5rem 2rem;border-top:1px solid ${borderColor};color:${mutedColor};font-size:.82rem;margin-top:4rem}footer a{color:${accentColor};font-weight:600}@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}.content{animation:fadeIn .6s ease-out}@media(max-width:768px){nav{padding:1rem 1.25rem}.nav-links{display:none}}</style></head><body><nav><span class="nav-brand">${navBrand}</span><ul class="nav-links">${navLinks.map(l => `<li><a href="#">${l}</a></li>`).join("")}</ul><a href="#" class="nav-cta">Get Started</a></nav><div class="content">${content}</div><footer>Built with <a href="#">Sayo.ai</a></footer></body></html>`;
-}
-
-function generateAboutPage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  return makePageShell("About", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<section style="max-width:800px;margin:0 auto;padding:6rem 2rem;text-align:center"><h1 style="font-size:2.5rem;font-weight:800;margin-bottom:1.5rem;letter-spacing:-0.03em">About Us</h1><p style="color:${t.mutedColor};font-size:1.1rem;line-height:1.8;margin-bottom:3rem">We're a passionate team building the future of web development. Our mission is to make beautiful, professional websites accessible to everyone through the power of AI.</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3rem"><div style="background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:16px;padding:2rem"><div style="font-size:2.5rem;margin-bottom:1rem">🎯</div><h3 style="font-weight:700;margin-bottom:0.5rem">Mission</h3><p style="color:${t.mutedColor};font-size:0.9rem;line-height:1.7">Democratize web design with intelligent AI tools.</p></div><div style="background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:16px;padding:2rem"><div style="font-size:2.5rem;margin-bottom:1rem">👥</div><h3 style="font-weight:700;margin-bottom:0.5rem">Team</h3><p style="color:${t.mutedColor};font-size:0.9rem;line-height:1.7">12 designers and engineers from around the world.</p></div><div style="background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:16px;padding:2rem"><div style="font-size:2.5rem;margin-bottom:1rem">🌍</div><h3 style="font-weight:700;margin-bottom:0.5rem">Global</h3><p style="color:${t.mutedColor};font-size:0.9rem;line-height:1.7">Serving creators in over 50 countries worldwide.</p></div></div></section>`
-  );
-}
-
-function generateContactPage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  return makePageShell("Contact", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<section style="max-width:600px;margin:0 auto;padding:6rem 2rem"><h1 style="font-size:2.5rem;font-weight:800;margin-bottom:1rem;text-align:center;letter-spacing:-0.03em">Get in Touch</h1><p style="color:${t.mutedColor};text-align:center;margin-bottom:3rem;font-size:1.05rem">Have a question or want to work together? We'd love to hear from you.</p><form style="display:flex;flex-direction:column;gap:1.25rem"><input placeholder="Your Name" style="padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit" /><input placeholder="Email Address" style="padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit" /><textarea placeholder="Your Message" rows="5" style="padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit;resize:vertical"></textarea><button style="padding:16px;background:${t.accentGradient};color:#fff;border:none;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer">Send Message</button></form></section>`
-  );
-}
-
-function generateArticlePage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  return makePageShell("Article", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<article style="max-width:720px;margin:0 auto;padding:5rem 2rem"><div style="margin-bottom:2rem"><span style="background:${t.accentColor}15;color:${t.accentColor};padding:4px 12px;border-radius:8px;font-size:0.8rem;font-weight:600">Featured</span><span style="color:${t.mutedColor};font-size:0.85rem;margin-left:12px">March 8, 2026 · 8 min read</span></div><h1 style="font-size:2.8rem;font-weight:800;line-height:1.2;margin-bottom:1.5rem;letter-spacing:-0.03em">The Future of AI-Powered Web Development</h1><p style="color:${t.mutedColor};font-size:1.15rem;line-height:1.8;margin-bottom:2rem">How machine learning is fundamentally reshaping the way we build for the web.</p><div style="height:400px;background:${t.accentGradient};border-radius:16px;margin-bottom:3rem;display:flex;align-items:center;justify-content:center;font-size:4rem;opacity:0.9">🖥️</div><div style="font-size:1.05rem;line-height:2;color:${t.mutedColor}"><p style="margin-bottom:1.5rem">The landscape of web development is undergoing a radical transformation. What once required weeks of coding and design iteration can now be accomplished in minutes with AI-assisted tools.</p><h2 style="color:${t.textColor};font-size:1.5rem;font-weight:700;margin:2rem 0 1rem">The Rise of AI Code Generation</h2><p style="margin-bottom:1.5rem">Modern AI models can understand natural language descriptions and translate them into production-ready code. This isn't just about generating boilerplate — it's about understanding design intent, user experience patterns, and accessibility best practices.</p><blockquote style="border-left:3px solid ${t.accentColor};padding:1rem 1.5rem;margin:2rem 0;background:${t.cardBg};border-radius:0 12px 12px 0;font-style:italic">"The best code is the code you never have to write. AI makes that possible at scale."</blockquote><p style="margin-bottom:1.5rem">Looking ahead, the integration of AI into development workflows will only deepen. We're moving toward a future where the barrier between ideation and implementation virtually disappears.</p></div></article>`
-  );
-}
-
-function generateProductsPage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  const products = [
-    { name: "Cashmere Sweater", price: "$245", emoji: "🧶", tag: "TRENDING" },
-    { name: "Silk Scarf", price: "$120", emoji: "🧣", tag: "NEW" },
-    { name: "Leather Belt", price: "$85", emoji: "👔", tag: "" },
-    { name: "Canvas Backpack", price: "$180", emoji: "🎒", tag: "BESTSELLER" },
-    { name: "Sunglasses", price: "$165", emoji: "🕶️", tag: "" },
-    { name: "Linen Shirt", price: "$95", emoji: "👕", tag: "NEW" },
-  ];
-  return makePageShell("Products", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<section style="max-width:1200px;margin:0 auto;padding:4rem 2rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3rem"><h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.03em">All Products</h1><div style="display:flex;gap:8px"><button style="padding:8px 16px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:8px;color:${t.textColor};font-size:0.85rem;cursor:pointer;font-family:inherit">Sort by</button><button style="padding:8px 16px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:8px;color:${t.textColor};font-size:0.85rem;cursor:pointer;font-family:inherit">Filter</button></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:2rem">${products.map(p => `<div style="cursor:pointer"><div style="aspect-ratio:3/4;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:1rem;position:relative">${p.emoji}${p.tag ? `<div style="position:absolute;top:12px;left:12px;background:${t.accentColor};color:#fff;padding:3px 10px;font-size:0.7rem;font-weight:700;border-radius:4px;letter-spacing:0.05em">${p.tag}</div>` : ""}</div><h3 style="font-weight:600;font-size:0.95rem;margin-bottom:0.25rem">${p.name}</h3><p style="font-weight:700">${p.price}</p></div>`).join("")}</div></section>`
-  );
-}
-
-function generateCartPage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  return makePageShell("Cart", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<section style="max-width:900px;margin:0 auto;padding:4rem 2rem"><h1 style="font-size:2rem;font-weight:800;margin-bottom:2rem;letter-spacing:-0.03em">Shopping Cart</h1><div style="display:grid;grid-template-columns:1.5fr 1fr;gap:3rem"><div><div style="display:flex;flex-direction:column;gap:1px;background:${t.borderColor};border-radius:16px;overflow:hidden"><div style="display:flex;align-items:center;gap:1.5rem;padding:1.5rem;background:${t.cardBg}"><div style="width:80px;height:80px;border-radius:12px;background:${t.bgColor};display:flex;align-items:center;justify-content:center;font-size:2rem;border:1px solid ${t.borderColor}">🧥</div><div style="flex:1"><h3 style="font-weight:600">Wool Blend Overcoat</h3><p style="color:${t.mutedColor};font-size:0.85rem;margin-top:2px">Size: M · Camel</p></div><span style="font-weight:700;font-size:1.1rem">$485</span></div><div style="display:flex;align-items:center;gap:1.5rem;padding:1.5rem;background:${t.cardBg}"><div style="width:80px;height:80px;border-radius:12px;background:${t.bgColor};display:flex;align-items:center;justify-content:center;font-size:2rem;border:1px solid ${t.borderColor}">👜</div><div style="flex:1"><h3 style="font-weight:600">Leather Tote Bag</h3><p style="color:${t.mutedColor};font-size:0.85rem;margin-top:2px">Cognac</p></div><span style="font-weight:700;font-size:1.1rem">$320</span></div></div></div><div style="background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:16px;padding:2rem;height:fit-content"><h3 style="font-weight:700;margin-bottom:1.5rem">Order Summary</h3><div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;color:${t.mutedColor};font-size:0.9rem"><span>Subtotal</span><span>$805.00</span></div><div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;color:${t.mutedColor};font-size:0.9rem"><span>Shipping</span><span>Free</span></div><div style="border-top:1px solid ${t.borderColor};margin:1rem 0;padding-top:1rem;display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem"><span>Total</span><span>$805.00</span></div><button style="width:100%;padding:16px;background:${t.accentGradient};color:#fff;border:none;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;margin-top:1rem">Checkout</button></div></div></section>`
-  );
-}
-
-function generateMenuPage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  return makePageShell("Menu", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<section style="max-width:900px;margin:0 auto;padding:5rem 2rem;text-align:center"><h1 style="font-size:2.5rem;font-weight:800;margin-bottom:0.5rem;letter-spacing:-0.03em">Our Full Menu</h1><p style="color:${t.mutedColor};margin-bottom:4rem;font-size:1.05rem">Seasonally inspired, locally sourced</p><div style="text-align:left"><h2 style="font-size:1.3rem;font-weight:700;margin-bottom:2rem;padding-bottom:0.75rem;border-bottom:2px solid ${t.accentColor}">🥗 Starters</h2><div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:4rem"><div style="display:flex;justify-content:space-between"><div><h3 style="font-weight:600;margin-bottom:4px">Burrata Salad</h3><p style="color:${t.mutedColor};font-size:0.88rem">Heirloom tomatoes · basil oil · aged balsamic</p></div><span style="font-weight:700;font-size:1.1rem">$18</span></div><div style="display:flex;justify-content:space-between"><div><h3 style="font-weight:600;margin-bottom:4px">Tuna Tartare</h3><p style="color:${t.mutedColor};font-size:0.88rem">Yellowfin tuna · avocado · sesame · crispy wonton</p></div><span style="font-weight:700;font-size:1.1rem">$22</span></div><div style="display:flex;justify-content:space-between"><div><h3 style="font-weight:600;margin-bottom:4px">French Onion Soup</h3><p style="color:${t.mutedColor};font-size:0.88rem">Caramelized onions · gruyère · sourdough crouton</p></div><span style="font-weight:700;font-size:1.1rem">$16</span></div></div><h2 style="font-size:1.3rem;font-weight:700;margin-bottom:2rem;padding-bottom:0.75rem;border-bottom:2px solid ${t.accentColor}">🥩 Mains</h2><div style="display:flex;flex-direction:column;gap:1.5rem;margin-bottom:4rem"><div style="display:flex;justify-content:space-between"><div><h3 style="font-weight:600;margin-bottom:4px">Wagyu Ribeye</h3><p style="color:${t.mutedColor};font-size:0.88rem">A5 Japanese wagyu · bone marrow butter · seasonal vegetables</p></div><span style="font-weight:700;font-size:1.1rem">$68</span></div><div style="display:flex;justify-content:space-between"><div><h3 style="font-weight:600;margin-bottom:4px">Lobster Risotto</h3><p style="color:${t.mutedColor};font-size:0.88rem">Maine lobster · saffron arborio · truffle oil</p></div><span style="font-weight:700;font-size:1.1rem">$45</span></div><div style="display:flex;justify-content:space-between"><div><h3 style="font-weight:600;margin-bottom:4px">Roasted Halibut</h3><p style="color:${t.mutedColor};font-size:0.88rem">Wild halibut · lemon caper sauce · asparagus</p></div><span style="font-weight:700;font-size:1.1rem">$42</span></div></div><h2 style="font-size:1.3rem;font-weight:700;margin-bottom:2rem;padding-bottom:0.75rem;border-bottom:2px solid ${t.accentColor}">🍰 Desserts</h2><div style="display:flex;flex-direction:column;gap:1.5rem"><div style="display:flex;justify-content:space-between"><div><h3 style="font-weight:600;margin-bottom:4px">Crème Brûlée</h3><p style="color:${t.mutedColor};font-size:0.88rem">Madagascar vanilla · caramelized sugar</p></div><span style="font-weight:700;font-size:1.1rem">$14</span></div><div style="display:flex;justify-content:space-between"><div><h3 style="font-weight:600;margin-bottom:4px">Chocolate Lava Cake</h3><p style="color:${t.mutedColor};font-size:0.88rem">Valrhona chocolate · vanilla gelato · berry coulis</p></div><span style="font-weight:700;font-size:1.1rem">$16</span></div></div></div></section>`
-  );
-}
-
-function generateReservationPage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  return makePageShell("Reservations", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<section style="max-width:600px;margin:0 auto;padding:5rem 2rem;text-align:center"><h1 style="font-size:2.5rem;font-weight:800;margin-bottom:0.75rem;letter-spacing:-0.03em">Make a Reservation</h1><p style="color:${t.mutedColor};margin-bottom:3rem;font-size:1.05rem">Join us for an unforgettable dining experience</p><form style="display:flex;flex-direction:column;gap:1.25rem;text-align:left"><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"><div><label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:6px">Date</label><input type="date" style="width:100%;padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit" /></div><div><label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:6px">Time</label><select style="width:100%;padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit;appearance:none"><option>6:00 PM</option><option>7:00 PM</option><option>8:00 PM</option><option>9:00 PM</option></select></div></div><div><label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:6px">Party Size</label><select style="width:100%;padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit;appearance:none"><option>2 Guests</option><option>3 Guests</option><option>4 Guests</option><option>5-6 Guests</option><option>7+ Guests</option></select></div><input placeholder="Full Name" style="padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit" /><input placeholder="Email" style="padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit" /><textarea placeholder="Special Requests" rows="3" style="padding:14px 18px;background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};font-size:0.95rem;outline:none;font-family:inherit;resize:vertical"></textarea><button style="padding:16px;background:${t.accentGradient};color:#fff;border:none;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;margin-top:0.5rem">Reserve Now</button></form></section>`
-  );
-}
-
-function generatePricingPage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  return makePageShell("Pricing", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<section style="max-width:1000px;margin:0 auto;padding:5rem 2rem;text-align:center"><h1 style="font-size:2.5rem;font-weight:800;margin-bottom:0.75rem;letter-spacing:-0.03em">Simple, Transparent Pricing</h1><p style="color:${t.mutedColor};margin-bottom:4rem;font-size:1.1rem">No hidden fees. Cancel anytime.</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;text-align:left"><div style="background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:20px;padding:2.5rem"><h3 style="font-weight:700;font-size:1.1rem">Starter</h3><p style="color:${t.mutedColor};font-size:0.85rem;margin:0.5rem 0 1.5rem">For individuals</p><div style="margin-bottom:2rem"><span style="font-size:3rem;font-weight:800;letter-spacing:-0.03em">$0</span><span style="color:${t.mutedColor};font-size:0.9rem">/mo</span></div><ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:12px;margin-bottom:2rem"><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> 3 projects</li><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> AI generation</li><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Basic support</li></ul><a href="#" style="display:block;text-align:center;padding:14px;border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};text-decoration:none;font-weight:600">Get Started</a></div><div style="background:${t.cardBg};border:2px solid ${t.accentColor};border-radius:20px;padding:2.5rem;position:relative;box-shadow:0 0 60px ${t.accentColor}15"><div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:${t.accentGradient};color:#fff;font-size:0.75rem;font-weight:700;padding:6px 20px;border-radius:100px">POPULAR</div><h3 style="font-weight:700;font-size:1.1rem">Pro</h3><p style="color:${t.mutedColor};font-size:0.85rem;margin:0.5rem 0 1.5rem">For professionals</p><div style="margin-bottom:2rem"><span style="font-size:3rem;font-weight:800;letter-spacing:-0.03em">$29</span><span style="color:${t.mutedColor};font-size:0.9rem">/mo</span></div><ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:12px;margin-bottom:2rem"><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Unlimited projects</li><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Custom domains</li><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Priority support</li><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Analytics</li></ul><a href="#" style="display:block;text-align:center;padding:14px;background:${t.accentGradient};border-radius:12px;color:#fff;text-decoration:none;font-weight:700;box-shadow:0 4px 20px ${t.accentColor}30">Start Free Trial</a></div><div style="background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:20px;padding:2.5rem"><h3 style="font-weight:700;font-size:1.1rem">Enterprise</h3><p style="color:${t.mutedColor};font-size:0.85rem;margin:0.5rem 0 1.5rem">For teams</p><div style="margin-bottom:2rem"><span style="font-size:3rem;font-weight:800;letter-spacing:-0.03em">Custom</span></div><ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:12px;margin-bottom:2rem"><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> Everything in Pro</li><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> SSO & SAML</li><li style="color:${t.mutedColor};font-size:0.88rem;display:flex;align-items:center;gap:8px"><span style="color:#22c55e">✓</span> SLA guarantee</li></ul><a href="#" style="display:block;text-align:center;padding:14px;border:1px solid ${t.borderColor};border-radius:12px;color:${t.textColor};text-decoration:none;font-weight:600">Contact Sales</a></div></div></section>`
-  );
-}
-
-function generateDocsPage(prompt: string): string {
-  const t = detectTemplate(prompt);
-  return makePageShell("Docs", t.bgColor, t.textColor, t.accentGradient, t.borderColor, t.mutedColor, t.accentColor, t.fontUrl || "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap", t.fontFamily || "'Inter'", t.navBrand, t.navLinks,
-    `<section style="max-width:1000px;margin:0 auto;padding:4rem 2rem;display:grid;grid-template-columns:240px 1fr;gap:3rem"><aside style="position:sticky;top:80px;height:fit-content"><h3 style="font-weight:700;margin-bottom:1.5rem;font-size:0.9rem;letter-spacing:0.05em;text-transform:uppercase;color:${t.mutedColor}">Documentation</h3><nav style="display:flex;flex-direction:column;gap:4px"><a href="#" style="padding:8px 14px;background:${t.accentColor}15;border-radius:8px;color:${t.accentColor};font-size:0.88rem;font-weight:500">Getting Started</a><a href="#" style="padding:8px 14px;color:${t.mutedColor};font-size:0.88rem;font-weight:500">Installation</a><a href="#" style="padding:8px 14px;color:${t.mutedColor};font-size:0.88rem;font-weight:500">Configuration</a><a href="#" style="padding:8px 14px;color:${t.mutedColor};font-size:0.88rem;font-weight:500">API Reference</a><a href="#" style="padding:8px 14px;color:${t.mutedColor};font-size:0.88rem;font-weight:500">Deployment</a><a href="#" style="padding:8px 14px;color:${t.mutedColor};font-size:0.88rem;font-weight:500">FAQ</a></nav></aside><main><h1 style="font-size:2rem;font-weight:800;margin-bottom:1.5rem;letter-spacing:-0.03em">Getting Started</h1><p style="color:${t.mutedColor};font-size:1.05rem;line-height:1.8;margin-bottom:2rem">Welcome to the docs! This guide will help you get up and running in under 5 minutes.</p><div style="background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;padding:1.5rem;margin-bottom:2rem"><h3 style="font-weight:600;margin-bottom:1rem">Quick Start</h3><pre style="background:${t.bgColor};border:1px solid ${t.borderColor};border-radius:8px;padding:1rem;font-size:0.85rem;overflow-x:auto;color:${t.mutedColor}"><code>npx create-nexus-app my-project\ncd my-project\nnpm run dev</code></pre></div><h2 style="font-size:1.4rem;font-weight:700;margin:2.5rem 0 1rem">Prerequisites</h2><ul style="color:${t.mutedColor};font-size:0.95rem;line-height:2;padding-left:1.5rem"><li>Node.js 18 or later</li><li>npm, yarn, or pnpm</li><li>A code editor (VS Code recommended)</li></ul><h2 style="font-size:1.4rem;font-weight:700;margin:2.5rem 0 1rem">Project Structure</h2><div style="background:${t.cardBg};border:1px solid ${t.borderColor};border-radius:12px;padding:1.5rem;font-family:monospace;font-size:0.85rem;color:${t.mutedColor};line-height:2">my-project/<br>&nbsp;&nbsp;├── src/<br>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── pages/<br>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── components/<br>&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── styles/<br>&nbsp;&nbsp;├── public/<br>&nbsp;&nbsp;├── package.json<br>&nbsp;&nbsp;└── config.ts</div></main></section>`
-  );
 }
