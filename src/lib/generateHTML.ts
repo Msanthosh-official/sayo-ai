@@ -8,7 +8,7 @@ interface ParsedPrompt {
   colorScheme: { bg: string; text: string; muted: string; accent: string; accentGradient: string; card: string; border: string; };
   font: { url: string; family: string; display?: string; displayUrl?: string; };
   sections: string[];
-  features: string[];
+  features: { title: string; desc: string; emoji: string }[];
   navLinks: string[];
   tone: "dark" | "light";
   items: { name: string; desc: string; price?: string; emoji: string }[];
