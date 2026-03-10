@@ -66,12 +66,18 @@ export default function AIBuilder() {
       setPublishedUrl(url);
       setIsPublished(true);
       setIsPublishing(false);
+      // Persist to project context
+      const projectId = Date.now().toString();
+      const existingId = (window as any).__currentProjectId;
+      if (existingId) {
+        updateProject(existingId, { publishedUrl: url });
+      }
       toast.success("Site published successfully!", {
         description: `${pages.length} page${pages.length > 1 ? "s" : ""} live at ${url}`,
         action: { label: "Copy URL", onClick: () => navigator.clipboard.writeText(url) },
       });
     }, 2000);
-  }, [pages, prompt]);
+  }, [pages, prompt, updateProject]);
 
   const handleCopy = () => {
     if (pages.length === 0) return;
