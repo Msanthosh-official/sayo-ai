@@ -659,13 +659,18 @@ function buildSectionHTML(section: string, parsed: ParsedPrompt): string {
   }
 }
 
-function buildFullPage(parsed: ParsedPrompt, contentSections: string[]): string {
+function buildFullPage(parsed: ParsedPrompt, contentSections: string[], pageOverride?: { title: string; subtitle: string; badge?: string; ctaLabel?: string }): string {
   const c = parsed.colorScheme;
   const fontUrl = parsed.font.url;
   const fontFamily = parsed.font.family;
   const displayFont = parsed.font.display || fontFamily;
 
   const sectionsHTML = contentSections.map(s => buildSectionHTML(s, parsed)).join("\n");
+
+  const heroTitle = pageOverride?.title || parsed.tagline;
+  const heroDesc = pageOverride?.subtitle || parsed.description;
+  const heroBadge = pageOverride?.badge || "✨ Built with Sayo.ai";
+  const heroCta = pageOverride?.ctaLabel || (parsed.type === "ecommerce" ? "Shop Now" : parsed.type === "restaurant" ? "Reserve a Table" : parsed.type === "fitness" ? "Start Training" : parsed.type === "event" ? "Get Tickets" : parsed.type === "nonprofit" ? "Donate Now" : "Get Started");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -712,18 +717,18 @@ function buildFullPage(parsed: ParsedPrompt, contentSections: string[]): string 
     <ul class="nav-links">
       ${parsed.navLinks.map(l => `<li><a href="#">${l}</a></li>`).join("")}
     </ul>
-    <a href="#" class="nav-cta">Get Started</a>
+    <a href="#" class="nav-cta">${heroCta}</a>
   </nav>
   <div class="hero">
-    <div class="hero-badge">✨ Built with Sayo.ai</div>
-    <h1>${parsed.tagline}</h1>
-    <p>${parsed.description}</p>
+    <div class="hero-badge">${heroBadge}</div>
+    <h1>${heroTitle}</h1>
+    <p>${heroDesc}</p>
     <div style="display:flex;gap:16px;margin-top:2.5rem;justify-content:center;flex-wrap:wrap">
-      <a href="#" style="padding:15px 36px;background:${c.accentGradient};color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 30px ${c.accent}40">${parsed.type === "ecommerce" ? "Shop Now" : parsed.type === "restaurant" ? "Reserve a Table" : parsed.type === "fitness" ? "Start Training" : parsed.type === "event" ? "Get Tickets" : parsed.type === "nonprofit" ? "Donate Now" : "Get Started"}</a>
+      <a href="#" style="padding:15px 36px;background:${c.accentGradient};color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 30px ${c.accent}40">${heroCta}</a>
       <a href="#" style="padding:15px 36px;background:${c.text}08;border:1px solid ${c.border};color:${c.text};border-radius:14px;text-decoration:none;font-weight:500;font-size:1rem;backdrop-filter:blur(12px)">Learn More →</a>
     </div>
-    ${parsed.type === "portfolio" ? `<div style="display:flex;justify-content:center;gap:2.5rem;margin-top:3rem;padding-top:3rem;border-top:1px solid ${c.border}"><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">50+</div><div style="color:${c.muted};font-size:.8rem">Projects</div></div><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">5yr</div><div style="color:${c.muted};font-size:.8rem">Experience</div></div><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">30+</div><div style="color:${c.muted};font-size:.8rem">Clients</div></div></div>` : ""}
-    ${parsed.type === "saas" ? `<div style="margin-top:1.5rem;color:${c.muted};font-size:.85rem">Trusted by 10,000+ developers</div>` : ""}
+    ${!pageOverride && parsed.type === "portfolio" ? `<div style="display:flex;justify-content:center;gap:2.5rem;margin-top:3rem;padding-top:3rem;border-top:1px solid ${c.border}"><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">50+</div><div style="color:${c.muted};font-size:.8rem">Projects</div></div><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">5yr</div><div style="color:${c.muted};font-size:.8rem">Experience</div></div><div style="text-align:center"><div style="font-size:2rem;font-weight:800;background:${c.accentGradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent">30+</div><div style="color:${c.muted};font-size:.8rem">Clients</div></div></div>` : ""}
+    ${!pageOverride && parsed.type === "saas" ? `<div style="margin-top:1.5rem;color:${c.muted};font-size:.85rem">Trusted by 10,000+ developers</div>` : ""}
   </div>
   ${sectionsHTML}
   <footer>Built with <a href="#">Sayo.ai</a> — AI-Powered Website Builder</footer>
@@ -741,28 +746,77 @@ export function generateMultiPageHTML(prompt: string): { name: string; html: str
   const parsed = parsePrompt(prompt);
   const pages: { name: string; html: string }[] = [{ name: "Home", html: buildFullPage(parsed, parsed.sections) }];
 
-  // Generate sub-pages based on type
-  const subPageMap: Record<string, { name: string; sections: string[] }[]> = {
-    portfolio: [{ name: "About", sections: ["skills", "testimonial", "contact"] }, { name: "Contact", sections: ["contact"] }],
-    ecommerce: [{ name: "Products", sections: ["products"] }, { name: "Cart", sections: ["pricing", "newsletter"] }],
-    restaurant: [{ name: "Full Menu", sections: ["menu"] }, { name: "Reservations", sections: ["reservation"] }],
-    blog: [{ name: "Articles", sections: ["articles"] }, { name: "About", sections: ["features", "newsletter"] }],
-    saas: [{ name: "Pricing", sections: ["pricing", "cta"] }, { name: "Features", sections: ["features", "dashboard"] }],
-    agency: [{ name: "Work", sections: ["projects", "clients"] }, { name: "Contact", sections: ["contact"] }],
-    fitness: [{ name: "Programs", sections: ["products", "trainers"] }, { name: "Join", sections: ["pricing", "cta"] }],
-    education: [{ name: "Courses", sections: ["products", "features"] }, { name: "Pricing", sections: ["pricing"] }],
-    travel: [{ name: "Destinations", sections: ["products", "features"] }, { name: "Plan", sections: ["contact"] }],
-    photography: [{ name: "Gallery", sections: ["gallery"] }, { name: "Book", sections: ["pricing", "contact"] }],
-    music: [{ name: "Tour", sections: ["products"] }, { name: "Merch", sections: ["products"] }],
-    real_estate: [{ name: "Listings", sections: ["listings"] }, { name: "Contact", sections: ["contact"] }],
-    medical: [{ name: "Services", sections: ["features", "team"] }, { name: "Book", sections: ["booking"] }],
-    nonprofit: [{ name: "Impact", sections: ["impact", "features"] }, { name: "Donate", sections: ["donate"] }],
-    event: [{ name: "Schedule", sections: ["schedule", "speakers"] }, { name: "Tickets", sections: ["tickets"] }],
+  // Sub-page definitions with unique hero content per page
+  const subPageMap: Record<string, { name: string; sections: string[]; hero: { title: string; subtitle: string; badge: string; ctaLabel: string } }[]> = {
+    portfolio: [
+      { name: "About", sections: ["skills", "testimonial"], hero: { title: `The story <span class='grad'>behind the work</span>`, subtitle: `I'm a passionate designer & developer with ${Math.floor(Math.random()*5)+3}+ years of experience building digital products. I believe great design solves real problems.`, badge: "👋 About Me", ctaLabel: "Download CV" } },
+      { name: "Contact", sections: ["contact"], hero: { title: `Let's <span class='grad'>work together</span>`, subtitle: "Have a project in mind? I'd love to hear about it. Let's chat and bring your ideas to life.", badge: "📬 Get in Touch", ctaLabel: "Send Message" } },
+    ],
+    ecommerce: [
+      { name: "Shop", sections: ["products"], hero: { title: `Browse our <span class='grad'>full collection</span>`, subtitle: "Explore all products across every category. Filter by style, price, or season to find exactly what you're looking for.", badge: "🛍️ All Products", ctaLabel: "Shop All" } },
+      { name: "About", sections: ["features", "testimonial", "newsletter"], hero: { title: `Our <span class='grad'>story & values</span>`, subtitle: "We believe in quality craftsmanship, sustainable sourcing, and creating products that stand the test of time.", badge: "💫 Our Story", ctaLabel: "Learn More" } },
+    ],
+    restaurant: [
+      { name: "Menu", sections: ["menu"], hero: { title: `Explore our <span class='grad'>full menu</span>`, subtitle: "Every dish is crafted with seasonal ingredients sourced from local farms. Our chef rotates specials weekly.", badge: "🍽️ Our Menu", ctaLabel: "Order Now" } },
+      { name: "Reservations", sections: ["reservation", "testimonial"], hero: { title: `Book your <span class='grad'>dining experience</span>`, subtitle: "Secure your table for an unforgettable evening. Private dining available for parties of 8 or more.", badge: "📅 Reserve a Table", ctaLabel: "Book Now" } },
+    ],
+    blog: [
+      { name: "All Articles", sections: ["articles"], hero: { title: `All <span class='grad'>published stories</span>`, subtitle: "Browse our complete archive of articles spanning technology, design, culture, and beyond.", badge: "📚 Archive", ctaLabel: "Read Latest" } },
+      { name: "About", sections: ["features", "newsletter"], hero: { title: `About <span class='grad'>this publication</span>`, subtitle: "We're a team of writers, thinkers, and builders sharing insights from the frontlines of technology and design.", badge: "✍️ About Us", ctaLabel: "Subscribe" } },
+    ],
+    saas: [
+      { name: "Pricing", sections: ["pricing", "cta"], hero: { title: `Simple, <span class='grad'>transparent pricing</span>`, subtitle: "No hidden fees, no surprises. Start free and scale as you grow. Cancel anytime.", badge: "💰 Plans & Pricing", ctaLabel: "Start Free" } },
+      { name: "Features", sections: ["features", "dashboard"], hero: { title: `Built for <span class='grad'>modern teams</span>`, subtitle: "Every feature is designed to help your team move faster, collaborate better, and ship with confidence.", badge: "🚀 All Features", ctaLabel: "Try it Free" } },
+    ],
+    agency: [
+      { name: "Our Work", sections: ["projects", "clients"], hero: { title: `Selected <span class='grad'>case studies</span>`, subtitle: "A showcase of our best work across branding, web design, and product development for ambitious companies.", badge: "🏆 Portfolio", ctaLabel: "Start a Project" } },
+      { name: "Contact", sections: ["contact"], hero: { title: `Start a <span class='grad'>conversation</span>`, subtitle: "Whether you have a detailed brief or just a rough idea, we'd love to hear from you and explore how we can help.", badge: "💬 Let's Talk", ctaLabel: "Get in Touch" } },
+    ],
+    fitness: [
+      { name: "Programs", sections: ["products", "trainers"], hero: { title: `Find your <span class='grad'>perfect program</span>`, subtitle: "From beginner to advanced, our programs are designed by certified trainers to match your fitness level and goals.", badge: "🏋️ Training Programs", ctaLabel: "Browse Programs" } },
+      { name: "Join Us", sections: ["pricing", "cta"], hero: { title: `Membership <span class='grad'>plans & pricing</span>`, subtitle: "Flexible plans that fit your lifestyle. All memberships include access to our full facility and group classes.", badge: "💪 Become a Member", ctaLabel: "Join Now" } },
+    ],
+    education: [
+      { name: "Courses", sections: ["products", "features"], hero: { title: `Explore all <span class='grad'>courses</span>`, subtitle: "Learn from industry experts with project-based courses. Earn certificates and build a portfolio that stands out.", badge: "🎓 Course Catalog", ctaLabel: "Enroll Now" } },
+      { name: "Pricing", sections: ["pricing"], hero: { title: `Invest in <span class='grad'>your future</span>`, subtitle: "Affordable plans for individuals and teams. Financial aid available. Start learning today.", badge: "📋 Plans", ctaLabel: "Get Started" } },
+    ],
+    travel: [
+      { name: "Destinations", sections: ["products", "features"], hero: { title: `Explore <span class='grad'>destinations</span>`, subtitle: "Handpicked destinations across 6 continents. Each trip is curated by local experts for an authentic experience.", badge: "🌍 Where to Go", ctaLabel: "Explore" } },
+      { name: "Plan Your Trip", sections: ["contact"], hero: { title: `Plan your <span class='grad'>dream trip</span>`, subtitle: "Tell us your ideal travel style, budget, and dates. Our experts will craft a personalized itinerary just for you.", badge: "🗓️ Trip Planning", ctaLabel: "Start Planning" } },
+    ],
+    photography: [
+      { name: "Gallery", sections: ["gallery"], hero: { title: `The <span class='grad'>full portfolio</span>`, subtitle: "A curated collection of work across weddings, portraits, commercial, and fine art photography.", badge: "📷 Portfolio", ctaLabel: "View Gallery" } },
+      { name: "Book a Session", sections: ["pricing", "contact"], hero: { title: `Book a <span class='grad'>photo session</span>`, subtitle: "Let's create something beautiful together. Choose a package or reach out for a custom quote.", badge: "📅 Book Now", ctaLabel: "Book Session" } },
+    ],
+    music: [
+      { name: "Tour Dates", sections: ["products"], hero: { title: `Catch us <span class='grad'>live on tour</span>`, subtitle: "Check out upcoming shows and get tickets before they sell out. VIP meet & greet packages available.", badge: "🎤 Live Shows", ctaLabel: "Get Tickets" } },
+      { name: "Merch", sections: ["products"], hero: { title: `Official <span class='grad'>merchandise</span>`, subtitle: "Limited edition drops, tour exclusives, and fan favorites. Worldwide shipping available.", badge: "👕 Merch Store", ctaLabel: "Shop Merch" } },
+    ],
+    real_estate: [
+      { name: "Listings", sections: ["listings"], hero: { title: `Browse all <span class='grad'>properties</span>`, subtitle: "Explore our full portfolio of residential and commercial listings. Virtual tours available for every property.", badge: "🏠 All Listings", ctaLabel: "View Properties" } },
+      { name: "Contact Agent", sections: ["contact"], hero: { title: `Connect with <span class='grad'>an expert</span>`, subtitle: "Our experienced agents are ready to help you find your dream home or sell your property at the best price.", badge: "🤝 Get Expert Help", ctaLabel: "Contact Us" } },
+    ],
+    medical: [
+      { name: "Services", sections: ["features", "team"], hero: { title: `Our <span class='grad'>medical services</span>`, subtitle: "Comprehensive care from board-certified physicians. From routine checkups to specialist referrals, we've got you covered.", badge: "🩺 Services", ctaLabel: "Book Appointment" } },
+      { name: "Book", sections: ["booking"], hero: { title: `Schedule your <span class='grad'>appointment</span>`, subtitle: "Book online in minutes. Same-day appointments available. Telehealth options for your convenience.", badge: "📅 Book Online", ctaLabel: "Schedule Now" } },
+    ],
+    nonprofit: [
+      { name: "Our Impact", sections: ["impact", "features"], hero: { title: `Measuring our <span class='grad'>real impact</span>`, subtitle: "Transparency is at our core. See exactly how donations are used and the communities we've helped transform.", badge: "📊 Impact Report", ctaLabel: "View Report" } },
+      { name: "Donate", sections: ["donate"], hero: { title: `Support our <span class='grad'>mission</span>`, subtitle: "Every dollar makes a difference. 95¢ of every dollar goes directly to programs. Tax-deductible donations.", badge: "❤️ Give Today", ctaLabel: "Donate Now" } },
+    ],
+    event: [
+      { name: "Schedule", sections: ["schedule", "speakers"], hero: { title: `Full event <span class='grad'>schedule</span>`, subtitle: "Two days packed with keynotes, workshops, panels, and networking opportunities. Something for everyone.", badge: "📋 Event Schedule", ctaLabel: "Get Tickets" } },
+      { name: "Tickets", sections: ["tickets"], hero: { title: `Get your <span class='grad'>tickets now</span>`, subtitle: "Early bird pricing available for a limited time. Group discounts for teams of 5+. All tickets include lunch.", badge: "🎫 Buy Tickets", ctaLabel: "Buy Now" } },
+    ],
   };
 
-  const subPages = subPageMap[parsed.type] || [{ name: "About", sections: ["features", "contact"] }];
+  const subPages = subPageMap[parsed.type] || [
+    { name: "About", sections: ["features"], hero: { title: `About <span class='grad'>${parsed.brandName}</span>`, subtitle: `Learn more about who we are, what we do, and why we do it. ${parsed.brandName} was built to make a difference.`, badge: "👋 About Us", ctaLabel: "Learn More" } },
+    { name: "Contact", sections: ["contact"], hero: { title: `Get in <span class='grad'>touch</span>`, subtitle: "We'd love to hear from you. Send us a message and we'll get back to you as soon as possible.", badge: "📬 Contact", ctaLabel: "Send Message" } },
+  ];
+
   for (const sub of subPages) {
-    pages.push({ name: sub.name, html: buildFullPage(parsed, sub.sections) });
+    pages.push({ name: sub.name, html: buildFullPage(parsed, sub.sections, sub.hero) });
   }
 
   return pages;
