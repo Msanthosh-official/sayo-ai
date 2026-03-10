@@ -16,6 +16,7 @@ interface ProjectContextType {
   setCurrentProject: (p: Project | null) => void;
   projects: Project[];
   addProject: (p: Project) => void;
+  updateProject: (id: string, updates: Partial<Project>) => void;
 }
 
 const ProjectContext = createContext<ProjectContextType>({
@@ -23,6 +24,7 @@ const ProjectContext = createContext<ProjectContextType>({
   setCurrentProject: () => {},
   projects: [],
   addProject: () => {},
+  updateProject: () => {},
 });
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
@@ -41,8 +43,15 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const updateProject = (id: string, updates: Partial<Project>) => {
+    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    if (currentProject?.id === id) {
+      setCurrentProject(prev => prev ? { ...prev, ...updates } : prev);
+    }
+  };
+
   return (
-    <ProjectContext.Provider value={{ currentProject, setCurrentProject, projects, addProject }}>
+    <ProjectContext.Provider value={{ currentProject, setCurrentProject, projects, addProject, updateProject }}>
       {children}
     </ProjectContext.Provider>
   );
