@@ -1,24 +1,40 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Plus, Eye, GitBranch, Rocket, Sparkles, ArrowRight, LogIn } from "lucide-react";
+import { Plus, Sparkles, ArrowRight, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useProject } from "@/contexts/ProjectContext";
+import { ProjectPreviewCard } from "@/components/ProjectPreviewCard";
 
-const mockProjects = [
-  { id: 1, name: "E-commerce Store", edited: "2 hours ago", status: "deployed" },
-  { id: 2, name: "Portfolio Website", edited: "1 day ago", status: "draft" },
-  { id: 3, name: "Blog Platform", edited: "3 days ago", status: "deployed" },
-  { id: 4, name: "Dashboard App", edited: "1 week ago", status: "building" },
+const defaultProjects = [
+  { id: "d1", name: "E-commerce Store", prompt: "A luxury fashion e-commerce store with product grid and cart", edited: "2 hours ago", status: "deployed", desc: "Modern online shop with cart and checkout" },
+  { id: "d2", name: "Portfolio Website", prompt: "A creative developer portfolio with project showcase and skills", edited: "1 day ago", status: "draft", desc: "Personal portfolio with project showcase" },
+  { id: "d3", name: "Blog Platform", prompt: "A modern tech blog with featured articles and newsletter", edited: "3 days ago", status: "deployed", desc: "Full-featured blog with CMS" },
+  { id: "d4", name: "Fitness Gym", prompt: "A bold fitness gym website with training programs and coaches", edited: "1 week ago", status: "building", desc: "Gym website with programs" },
 ];
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { projects } = useProject();
   const [prompt, setPrompt] = useState("");
-  const [isLoggedIn] = useState(false); // mock auth state
+  const [isLoggedIn] = useState(false);
+
+  // Merge real projects with defaults
+  const allProjects = [
+    ...projects.map(p => ({
+      id: p.id,
+      name: p.name,
+      prompt: p.prompt,
+      edited: "Just now",
+      status: p.publishedUrl ? "deployed" : "draft",
+      desc: p.prompt.slice(0, 60),
+      publishedUrl: p.publishedUrl,
+    })),
+    ...defaultProjects,
+  ].slice(0, 4);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Signup Banner */}
       {!isLoggedIn && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -35,23 +51,17 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate("/login")}>
-              Log In
-            </Button>
-            <Button variant="hero" size="sm" onClick={() => navigate("/signup")}>
-              Sign Up <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/login")}>Log In</Button>
+            <Button variant="hero" size="sm" onClick={() => navigate("/signup")}>Sign Up <ArrowRight className="h-3.5 w-3.5" /></Button>
           </div>
         </motion.div>
       )}
 
-      {/* Welcome */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
         <h1 className="font-display text-3xl font-bold text-foreground">Welcome back 👋</h1>
         <p className="text-muted-foreground mt-1">Build something amazing with AI today.</p>
       </motion.div>
 
-      {/* Quick AI prompt */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -75,7 +85,6 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* Projects */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-semibold text-xl text-foreground">Recent Projects</h2>
@@ -84,29 +93,19 @@ export default function Dashboard() {
           </Button>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {mockProjects.map((project, i) => (
-            <motion.div
+          {allProjects.map((project, i) => (
+            <ProjectPreviewCard
               key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 + i * 0.05 }}
-              className="rounded-xl border border-border bg-card shadow-card p-5 hover:shadow-elevated transition-shadow group"
-            >
-              <div className="h-28 rounded-lg bg-accent mb-4 flex items-center justify-center">
-                <div className="h-8 w-20 bg-primary/10 rounded" />
-              </div>
-              <h3 className="font-display font-semibold text-foreground">{project.name}</h3>
-              <p className="text-xs text-muted-foreground mt-1">Edited {project.edited}</p>
-              <div className="flex items-center gap-1 mt-1">
-                <span className={`inline-block h-2 w-2 rounded-full ${project.status === "deployed" ? "bg-green-500" : project.status === "building" ? "bg-secondary" : "bg-muted-foreground/40"}`} />
-                <span className="text-xs text-muted-foreground capitalize">{project.status}</span>
-              </div>
-              <div className="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="sm"><Eye className="h-3.5 w-3.5" /></Button>
-                <Button variant="ghost" size="sm"><GitBranch className="h-3.5 w-3.5" /></Button>
-                <Button variant="ghost" size="sm"><Rocket className="h-3.5 w-3.5" /></Button>
-              </div>
-            </motion.div>
+              name={project.name}
+              prompt={project.prompt}
+              status={project.status}
+              edited={project.edited}
+              desc={project.desc}
+              publishedUrl={(project as any).publishedUrl}
+              onPreview={() => navigate("/dashboard/builder", { state: { prompt: project.prompt } })}
+              onDeploy={() => navigate("/dashboard/deploy")}
+              delay={0.15 + i * 0.05}
+            />
           ))}
         </div>
       </div>
