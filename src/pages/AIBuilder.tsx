@@ -9,7 +9,7 @@ import { useProject } from "@/contexts/ProjectContext";
 
 export default function AIBuilder() {
   const location = useLocation();
-  const { setCurrentProject, addProject } = useProject();
+  const { setCurrentProject, addProject, updateProject } = useProject();
   const [prompt, setPrompt] = useState((location.state as any)?.prompt || "");
   const [isGenerating, setIsGenerating] = useState(false);
   const [pages, setPages] = useState<{ name: string; html: string }[]>([]);
