@@ -1,26 +1,47 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Plus, Eye, GitBranch, Rocket, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useProject } from "@/contexts/ProjectContext";
+import { ProjectPreviewCard } from "@/components/ProjectPreviewCard";
 
-const projects = [
-  { id: 1, name: "E-commerce Store", edited: "2 hours ago", status: "deployed", desc: "Modern online shop with cart and checkout" },
-  { id: 2, name: "Portfolio Website", edited: "1 day ago", status: "draft", desc: "Personal portfolio with project showcase" },
-  { id: 3, name: "Blog Platform", edited: "3 days ago", status: "deployed", desc: "Full-featured blog with CMS" },
-  { id: 4, name: "Dashboard App", edited: "1 week ago", status: "building", desc: "Analytics dashboard with charts" },
-  { id: 5, name: "Landing Page", edited: "2 weeks ago", status: "deployed", desc: "Product launch landing page" },
-  { id: 6, name: "Social App", edited: "3 weeks ago", status: "draft", desc: "Social media app prototype" },
+const defaultProjects = [
+  { id: "p1", name: "E-commerce Store", prompt: "A luxury fashion e-commerce store with product grid and shopping cart", edited: "2 hours ago", status: "deployed", desc: "Modern online shop with cart and checkout" },
+  { id: "p2", name: "Portfolio Website", prompt: "A creative developer portfolio site with project showcase and contact form", edited: "1 day ago", status: "draft", desc: "Personal portfolio with project showcase" },
+  { id: "p3", name: "Blog Platform", prompt: "A modern tech blog platform with featured articles and newsletter signup", edited: "3 days ago", status: "deployed", desc: "Full-featured blog with CMS" },
+  { id: "p4", name: "Fitness Gym", prompt: "A bold fitness gym website with workout programs and trainer profiles", edited: "1 week ago", status: "building", desc: "Gym website with programs" },
+  { id: "p5", name: "Restaurant Site", prompt: "A fine dining sushi restaurant website with menu and reservations", edited: "2 weeks ago", status: "deployed", desc: "Restaurant with menu and reservations" },
+  { id: "p6", name: "Travel Agency", prompt: "A travel adventure agency website with destinations and booking", edited: "3 weeks ago", status: "draft", desc: "Travel agency with trip booking" },
 ];
 
 export default function Projects() {
+  const navigate = useNavigate();
+  const { projects } = useProject();
   const [search, setSearch] = useState("");
-  const filtered = projects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+
+  const allProjects = [
+    ...projects.map(p => ({
+      id: p.id,
+      name: p.name,
+      prompt: p.prompt,
+      edited: "Just now",
+      status: p.publishedUrl ? "deployed" : "draft",
+      desc: p.prompt.slice(0, 60),
+      publishedUrl: p.publishedUrl,
+    })),
+    ...defaultProjects,
+  ];
+
+  const filtered = allProjects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-foreground">Projects</h1>
-        <Button variant="hero" size="sm"><Plus className="h-4 w-4 mr-1" /> New Project</Button>
+        <Button variant="hero" size="sm" onClick={() => navigate("/dashboard/builder")}>
+          <Plus className="h-4 w-4 mr-1" /> New Project
+        </Button>
       </div>
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -33,29 +54,18 @@ export default function Projects() {
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((project, i) => (
-          <motion.div
+          <ProjectPreviewCard
             key={project.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="rounded-xl border border-border bg-card shadow-card p-5 hover:shadow-elevated transition-shadow"
-          >
-            <div className="h-32 rounded-lg bg-accent mb-4 flex items-center justify-center">
-              <div className="h-10 w-24 bg-primary/10 rounded" />
-            </div>
-            <h3 className="font-display font-semibold text-foreground">{project.name}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{project.desc}</p>
-            <div className="flex items-center gap-2 mt-2">
-              <span className={`h-2 w-2 rounded-full ${project.status === "deployed" ? "bg-green-500" : project.status === "building" ? "bg-secondary" : "bg-muted-foreground/40"}`} />
-              <span className="text-xs text-muted-foreground capitalize">{project.status}</span>
-              <span className="text-xs text-muted-foreground ml-auto">{project.edited}</span>
-            </div>
-            <div className="flex gap-2 mt-4">
-              <Button variant="outline" size="sm" className="flex-1"><Eye className="h-3.5 w-3.5 mr-1" /> Preview</Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9"><GitBranch className="h-3.5 w-3.5" /></Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9"><Rocket className="h-3.5 w-3.5" /></Button>
-            </div>
-          </motion.div>
+            name={project.name}
+            prompt={project.prompt}
+            status={project.status}
+            edited={project.edited}
+            desc={project.desc}
+            publishedUrl={(project as any).publishedUrl}
+            onPreview={() => navigate("/dashboard/builder", { state: { prompt: project.prompt } })}
+            onDeploy={() => navigate("/dashboard/deploy")}
+            delay={i * 0.05}
+          />
         ))}
       </div>
     </div>
