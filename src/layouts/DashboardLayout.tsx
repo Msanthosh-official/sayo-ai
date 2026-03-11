@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/use-theme";
 
 export default function DashboardLayout() {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   return (
     <SidebarProvider>
