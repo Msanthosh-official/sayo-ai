@@ -15,6 +15,7 @@ import Templates from "./pages/Templates";
 import Deploy from "./pages/Deploy";
 import DashboardSettings from "./pages/DashboardSettings";
 import NotFound from "./pages/NotFound";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
