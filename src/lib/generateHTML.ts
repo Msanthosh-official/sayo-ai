@@ -727,6 +727,7 @@ function buildFullPage(parsed: ParsedPrompt, contentSections: string[], pageOver
     <a href="#" class="nav-cta">${heroCta}</a>
   </nav>
   <div class="hero">
+    <div class="hero-bg"></div>
     <div class="hero-badge">${heroBadge}</div>
     <h1>${heroTitle}</h1>
     <p>${heroDesc}</p>
