@@ -5,7 +5,7 @@ interface ParsedPrompt {
   tagline: string;
   description: string;
   type: string;
-  colorScheme: { bg: string; text: string; muted: string; accent: string; accentGradient: string; card: string; border: string; };
+  colorScheme: { bg: string; text: string; muted: string; accent: string; accentGradient: string; card: string; border: string; heroPattern: string; };
   font: { url: string; family: string; display?: string; displayUrl?: string; };
   sections: string[];
   features: { title: string; desc: string; emoji: string }[];
@@ -15,16 +15,21 @@ interface ParsedPrompt {
 }
 
 const COLOR_THEMES = {
-  tech: { bg: "#09090b", text: "#fafafa", muted: "#71717a", accent: "#8b5cf6", accentGradient: "linear-gradient(135deg,#8b5cf6,#06b6d4)", card: "#18181b", border: "#27272a" },
-  warm: { bg: "#0f0d0a", text: "#f5f0e8", muted: "#9c9588", accent: "#ea580c", accentGradient: "linear-gradient(135deg,#ea580c,#f59e0b)", card: "#1a1714", border: "#2a2520" },
-  elegant: { bg: "#fafaf8", text: "#1a1a1a", muted: "#7a7a7a", accent: "#1a1a1a", accentGradient: "linear-gradient(135deg,#1a1a1a,#4a4a4a)", card: "#ffffff", border: "#e8e8e5" },
-  creative: { bg: "#050505", text: "#f5f5f5", muted: "#8b8b8b", accent: "#ec4899", accentGradient: "linear-gradient(135deg,#ec4899,#8b5cf6)", card: "#111111", border: "#1e1e1e" },
-  nature: { bg: "#f8faf8", text: "#1a2e1a", muted: "#5c7a5c", accent: "#16a34a", accentGradient: "linear-gradient(135deg,#16a34a,#06b6d4)", card: "#ffffff", border: "#d4e8d4" },
-  bold: { bg: "#09090b", text: "#fafafa", muted: "#a1a1aa", accent: "#dc2626", accentGradient: "linear-gradient(135deg,#dc2626,#f59e0b)", card: "#18181b", border: "#27272a" },
-  ocean: { bg: "#0c1222", text: "#e2e8f0", muted: "#64748b", accent: "#0ea5e9", accentGradient: "linear-gradient(135deg,#0ea5e9,#6366f1)", card: "#1e293b", border: "#334155" },
-  luxury: { bg: "#0a0a0a", text: "#f5f0e0", muted: "#8a8070", accent: "#b8860b", accentGradient: "linear-gradient(135deg,#b8860b,#d4a574)", card: "#151510", border: "#2a2520" },
-  editorial: { bg: "#faf9f7", text: "#1a1a1a", muted: "#6b6b6b", accent: "#ef4444", accentGradient: "linear-gradient(135deg,#ef4444,#f59e0b)", card: "#ffffff", border: "#ebebeb" },
-  midnight: { bg: "#0f0f1a", text: "#e8e8f0", muted: "#7070a0", accent: "#818cf8", accentGradient: "linear-gradient(135deg,#818cf8,#c084fc)", card: "#1a1a2e", border: "#2a2a40" },
+  tech: { bg: "#09090b", text: "#fafafa", muted: "#71717a", accent: "#8b5cf6", accentGradient: "linear-gradient(135deg,#8b5cf6,#06b6d4)", card: "#18181b", border: "#27272a", heroPattern: "radial-gradient(circle at 20% 50%,#8b5cf620 0%,transparent 50%),radial-gradient(circle at 80% 50%,#06b6d415 0%,transparent 50%)" },
+  warm: { bg: "#0f0d0a", text: "#f5f0e8", muted: "#9c9588", accent: "#ea580c", accentGradient: "linear-gradient(135deg,#ea580c,#f59e0b)", card: "#1a1714", border: "#2a2520", heroPattern: "radial-gradient(ellipse at 30% 0%,#ea580c15 0%,transparent 60%),radial-gradient(ellipse at 70% 100%,#f59e0b10 0%,transparent 60%)" },
+  elegant: { bg: "#fafaf8", text: "#1a1a1a", muted: "#7a7a7a", accent: "#1a1a1a", accentGradient: "linear-gradient(135deg,#1a1a1a,#4a4a4a)", card: "#ffffff", border: "#e8e8e5", heroPattern: "linear-gradient(180deg,#f5f5f0 0%,#fafaf8 100%)" },
+  creative: { bg: "#050505", text: "#f5f5f5", muted: "#8b8b8b", accent: "#ec4899", accentGradient: "linear-gradient(135deg,#ec4899,#8b5cf6)", card: "#111111", border: "#1e1e1e", heroPattern: "radial-gradient(circle at 50% 0%,#ec489918 0%,transparent 50%),radial-gradient(circle at 0% 100%,#8b5cf612 0%,transparent 50%)" },
+  nature: { bg: "#f0f7f0", text: "#1a2e1a", muted: "#5c7a5c", accent: "#16a34a", accentGradient: "linear-gradient(135deg,#16a34a,#059669)", card: "#ffffff", border: "#c8e0c8", heroPattern: "radial-gradient(ellipse at 50% 100%,#16a34a08 0%,transparent 70%)" },
+  bold: { bg: "#09090b", text: "#fafafa", muted: "#a1a1aa", accent: "#dc2626", accentGradient: "linear-gradient(135deg,#dc2626,#f59e0b)", card: "#18181b", border: "#27272a", heroPattern: "radial-gradient(circle at 80% 20%,#dc262618 0%,transparent 50%),radial-gradient(circle at 20% 80%,#f59e0b10 0%,transparent 50%)" },
+  ocean: { bg: "#0c1222", text: "#e2e8f0", muted: "#64748b", accent: "#0ea5e9", accentGradient: "linear-gradient(135deg,#0ea5e9,#6366f1)", card: "#1e293b", border: "#334155", heroPattern: "radial-gradient(ellipse at 50% 0%,#0ea5e918 0%,transparent 60%),radial-gradient(ellipse at 50% 100%,#6366f110 0%,transparent 60%)" },
+  luxury: { bg: "#0a0a0a", text: "#f5f0e0", muted: "#8a8070", accent: "#b8860b", accentGradient: "linear-gradient(135deg,#b8860b,#d4a574)", card: "#151510", border: "#2a2520", heroPattern: "radial-gradient(circle at 50% 30%,#b8860b12 0%,transparent 50%)" },
+  editorial: { bg: "#faf9f7", text: "#1a1a1a", muted: "#6b6b6b", accent: "#ef4444", accentGradient: "linear-gradient(135deg,#ef4444,#f97316)", card: "#ffffff", border: "#ebebeb", heroPattern: "linear-gradient(180deg,#fef2f2 0%,#faf9f7 50%)" },
+  midnight: { bg: "#0f0f1a", text: "#e8e8f0", muted: "#7070a0", accent: "#818cf8", accentGradient: "linear-gradient(135deg,#818cf8,#c084fc)", card: "#1a1a2e", border: "#2a2a40", heroPattern: "radial-gradient(circle at 30% 20%,#818cf815 0%,transparent 50%),radial-gradient(circle at 70% 80%,#c084fc10 0%,transparent 50%)" },
+  sunset: { bg: "#1a0a0a", text: "#fde8d8", muted: "#a08070", accent: "#f97316", accentGradient: "linear-gradient(135deg,#f97316,#ef4444)", card: "#1f1210", border: "#3a2520", heroPattern: "radial-gradient(ellipse at 40% 0%,#f9731618 0%,transparent 50%),radial-gradient(ellipse at 60% 100%,#ef444412 0%,transparent 50%)" },
+  forest: { bg: "#0a1210", text: "#d8f0e0", muted: "#608070", accent: "#059669", accentGradient: "linear-gradient(135deg,#059669,#14b8a6)", card: "#101a16", border: "#1a2e24", heroPattern: "radial-gradient(circle at 20% 80%,#05966915 0%,transparent 50%)" },
+  royal: { bg: "#0e0a18", text: "#e8e0f8", muted: "#8070a0", accent: "#a855f7", accentGradient: "linear-gradient(135deg,#a855f7,#ec4899)", card: "#1a1428", border: "#2a2040", heroPattern: "radial-gradient(circle at 50% 0%,#a855f718 0%,transparent 50%),radial-gradient(circle at 50% 100%,#ec489910 0%,transparent 60%)" },
+  sand: { bg: "#faf6f0", text: "#2a2018", muted: "#8a7a68", accent: "#b45309", accentGradient: "linear-gradient(135deg,#b45309,#d97706)", card: "#fff8f0", border: "#e8dcc8", heroPattern: "linear-gradient(180deg,#fef3c7 0%,#faf6f0 60%)" },
+  arctic: { bg: "#f0f8ff", text: "#1a2838", muted: "#6080a0", accent: "#2563eb", accentGradient: "linear-gradient(135deg,#2563eb,#0ea5e9)", card: "#ffffff", border: "#d0e4f0", heroPattern: "radial-gradient(ellipse at 50% 0%,#2563eb08 0%,transparent 60%)" },
 };
 
 const FONTS = {
@@ -93,15 +98,15 @@ function parsePrompt(prompt: string): ParsedPrompt {
   else if (p.includes("warm") || p.includes("orange") || p.includes("cozy")) colorKey = "warm";
   else {
     const typeColorMap: Record<string, string> = {
-      portfolio: "creative", ecommerce: "elegant", restaurant: "warm", blog: "editorial",
-      saas: "tech", agency: "midnight", fitness: "bold", education: "ocean",
-      travel: "ocean", photography: "creative", music: "midnight", real_estate: "elegant",
-      medical: "nature", nonprofit: "nature", event: "bold",
+      portfolio: "creative", ecommerce: "sand", restaurant: "warm", blog: "editorial",
+      saas: "tech", agency: "midnight", fitness: "bold", education: "arctic",
+      travel: "ocean", photography: "royal", music: "sunset", real_estate: "elegant",
+      medical: "forest", nonprofit: "nature", event: "bold",
     };
     colorKey = typeColorMap[type] || "tech";
   }
   const colorScheme = COLOR_THEMES[colorKey as keyof typeof COLOR_THEMES];
-  const tone = ["elegant", "nature", "editorial"].includes(colorKey) ? "light" : "dark" as "dark" | "light";
+  const tone = ["elegant", "nature", "editorial", "sand", "arctic"].includes(colorKey) ? "light" : "dark" as "dark" | "light";
 
   // Pick font
   let fontKey = "modern";
@@ -694,7 +699,9 @@ function buildFullPage(parsed: ParsedPrompt, contentSections: string[], pageOver
     .nav-links a { color: ${c.muted}; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
     .nav-links a:hover { color: ${c.text}; opacity: 1; }
     .nav-cta { padding: 9px 22px; background: ${c.accentGradient}; color: #fff; border-radius: 10px; font-size: 0.85rem; font-weight: 600; }
-    .hero { text-align: center; padding: 7rem 2rem 4rem; max-width: 850px; margin: 0 auto; }
+    .hero { text-align: center; padding: 7rem 2rem 4rem; max-width: 850px; margin: 0 auto; position: relative; }
+    .hero-bg { position: absolute; inset: 0; background: ${c.heroPattern}; pointer-events: none; z-index: 0; }
+    .hero > * { position: relative; z-index: 1; }
     .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: ${c.accent}10; color: ${c.accent}; font-size: 0.8rem; font-weight: 600; padding: 8px 18px; border-radius: 100px; margin-bottom: 2rem; border: 1px solid ${c.accent}25; }
     .hero h1 { font-size: clamp(2.5rem, 5.5vw, 4rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.04em; margin-bottom: 1.5rem; }
     .hero p { color: ${c.muted}; font-size: 1.15rem; line-height: 1.75; max-width: 620px; margin: 0 auto; }
@@ -720,6 +727,7 @@ function buildFullPage(parsed: ParsedPrompt, contentSections: string[], pageOver
     <a href="#" class="nav-cta">${heroCta}</a>
   </nav>
   <div class="hero">
+    <div class="hero-bg"></div>
     <div class="hero-badge">${heroBadge}</div>
     <h1>${heroTitle}</h1>
     <p>${heroDesc}</p>

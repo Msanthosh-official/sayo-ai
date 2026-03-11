@@ -15,6 +15,7 @@ import Templates from "./pages/Templates";
 import Deploy from "./pages/Deploy";
 import DashboardSettings from "./pages/DashboardSettings";
 import NotFound from "./pages/NotFound";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
                 <Route path="templates" element={<Templates />} />
                 <Route path="deploy" element={<Deploy />} />
                 <Route path="settings" element={<DashboardSettings />} />
+                <Route path="pricing" element={<Pricing />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/use-theme";
 
 export default function DashboardLayout() {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   return (
     <SidebarProvider>
@@ -19,7 +20,7 @@ export default function DashboardLayout() {
               <Button variant="ghost" size="icon" onClick={toggleTheme} title="Toggle theme">
                 {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/pricing")}>
                 <Crown className="h-4 w-4 mr-1 text-secondary" /> Upgrade
               </Button>
               <Button variant="ghost" size="icon">
