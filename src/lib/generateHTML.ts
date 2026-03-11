@@ -5,7 +5,7 @@ interface ParsedPrompt {
   tagline: string;
   description: string;
   type: string;
-  colorScheme: { bg: string; text: string; muted: string; accent: string; accentGradient: string; card: string; border: string; };
+  colorScheme: { bg: string; text: string; muted: string; accent: string; accentGradient: string; card: string; border: string; heroPattern: string; };
   font: { url: string; family: string; display?: string; displayUrl?: string; };
   sections: string[];
   features: { title: string; desc: string; emoji: string }[];
