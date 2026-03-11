@@ -699,7 +699,9 @@ function buildFullPage(parsed: ParsedPrompt, contentSections: string[], pageOver
     .nav-links a { color: ${c.muted}; font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
     .nav-links a:hover { color: ${c.text}; opacity: 1; }
     .nav-cta { padding: 9px 22px; background: ${c.accentGradient}; color: #fff; border-radius: 10px; font-size: 0.85rem; font-weight: 600; }
-    .hero { text-align: center; padding: 7rem 2rem 4rem; max-width: 850px; margin: 0 auto; }
+    .hero { text-align: center; padding: 7rem 2rem 4rem; max-width: 850px; margin: 0 auto; position: relative; }
+    .hero-bg { position: absolute; inset: 0; background: ${c.heroPattern}; pointer-events: none; z-index: 0; }
+    .hero > * { position: relative; z-index: 1; }
     .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: ${c.accent}10; color: ${c.accent}; font-size: 0.8rem; font-weight: 600; padding: 8px 18px; border-radius: 100px; margin-bottom: 2rem; border: 1px solid ${c.accent}25; }
     .hero h1 { font-size: clamp(2.5rem, 5.5vw, 4rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.04em; margin-bottom: 1.5rem; }
     .hero p { color: ${c.muted}; font-size: 1.15rem; line-height: 1.75; max-width: 620px; margin: 0 auto; }
