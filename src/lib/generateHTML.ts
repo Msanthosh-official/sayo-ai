@@ -98,10 +98,10 @@ function parsePrompt(prompt: string): ParsedPrompt {
   else if (p.includes("warm") || p.includes("orange") || p.includes("cozy")) colorKey = "warm";
   else {
     const typeColorMap: Record<string, string> = {
-      portfolio: "creative", ecommerce: "elegant", restaurant: "warm", blog: "editorial",
-      saas: "tech", agency: "midnight", fitness: "bold", education: "ocean",
-      travel: "ocean", photography: "creative", music: "midnight", real_estate: "elegant",
-      medical: "nature", nonprofit: "nature", event: "bold",
+      portfolio: "creative", ecommerce: "sand", restaurant: "warm", blog: "editorial",
+      saas: "tech", agency: "midnight", fitness: "bold", education: "arctic",
+      travel: "ocean", photography: "royal", music: "sunset", real_estate: "elegant",
+      medical: "forest", nonprofit: "nature", event: "bold",
     };
     colorKey = typeColorMap[type] || "tech";
   }
