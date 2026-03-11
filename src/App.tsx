@@ -38,6 +38,7 @@ const App = () => (
                 <Route path="templates" element={<Templates />} />
                 <Route path="deploy" element={<Deploy />} />
                 <Route path="settings" element={<DashboardSettings />} />
+                <Route path="pricing" element={<Pricing />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -106,7 +106,7 @@ function parsePrompt(prompt: string): ParsedPrompt {
     colorKey = typeColorMap[type] || "tech";
   }
   const colorScheme = COLOR_THEMES[colorKey as keyof typeof COLOR_THEMES];
-  const tone = ["elegant", "nature", "editorial"].includes(colorKey) ? "light" : "dark" as "dark" | "light";
+  const tone = ["elegant", "nature", "editorial", "sand", "arctic"].includes(colorKey) ? "light" : "dark" as "dark" | "light";
 
   // Pick font
   let fontKey = "modern";
