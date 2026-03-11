@@ -20,8 +20,9 @@ export default function DashboardLayout() {
               <Button variant="ghost" size="icon" onClick={toggleTheme} title="Toggle theme">
                 {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/pricing")}>
                 <Crown className="h-4 w-4 mr-1 text-secondary" /> Upgrade
+              </Button>
               </Button>
               <Button variant="ghost" size="icon">
                 <Bell className="h-4 w-4" />
