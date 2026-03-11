@@ -23,7 +23,6 @@ export default function DashboardLayout() {
               <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/pricing")}>
                 <Crown className="h-4 w-4 mr-1 text-secondary" /> Upgrade
               </Button>
-              </Button>
               <Button variant="ghost" size="icon">
                 <Bell className="h-4 w-4" />
               </Button>
