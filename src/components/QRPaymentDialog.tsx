@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import paymentQR from "@/assets/payment-qr.jpeg";
 
 interface QRPaymentDialogProps {
   open: boolean;
@@ -29,17 +30,14 @@ export default function QRPaymentDialog({ open, onOpenChange, planName, price, p
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 py-4">
-          <div className="w-56 h-56 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/50">
-            {/* Replace with your QR code image */}
-            <p className="text-sm text-muted-foreground text-center px-4">
-              QR code not set yet. Upload your payment QR code.
-            </p>
-          </div>
-
+          <img
+            src={paymentQR}
+            alt="Scan to pay with any UPI app"
+            className="w-56 h-56 rounded-xl object-contain"
+          />
           <p className="text-xs text-muted-foreground text-center max-w-xs">
-            After scanning and completing payment, click the button below to confirm.
+            Scan with any UPI app. After completing payment, click below to confirm.
           </p>
-
           <Button variant="hero" className="w-full" onClick={handleConfirmPayment}>
             I've completed the payment
           </Button>
