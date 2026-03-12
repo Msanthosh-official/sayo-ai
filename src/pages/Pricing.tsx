@@ -68,12 +68,17 @@ const plans = [
 
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState({ name: "", price: 0 });
   const navigate = useNavigate();
 
-  const handleUpgrade = (planName: string) => {
-    toast.info(`${planName} upgrade coming soon!`, {
-      description: "Payment integration will be available shortly.",
-    });
+  const handleUpgrade = (planName: string, price: number) => {
+    if (planName === "Enterprise") {
+      toast.info("Contact us for Enterprise pricing!");
+      return;
+    }
+    setSelectedPlan({ name: planName, price });
+    setQrOpen(true);
   };
 
   return (
