@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import QRPaymentDialog from "@/components/QRPaymentDialog";
 
 const plans = [
   {
@@ -67,12 +68,17 @@ const plans = [
 
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState({ name: "", price: 0 });
   const navigate = useNavigate();
 
-  const handleUpgrade = (planName: string) => {
-    toast.info(`${planName} upgrade coming soon!`, {
-      description: "Payment integration will be available shortly.",
-    });
+  const handleUpgrade = (planName: string, price: number) => {
+    if (planName === "Enterprise") {
+      toast.info("Contact us for Enterprise pricing!");
+      return;
+    }
+    setSelectedPlan({ name: planName, price });
+    setQrOpen(true);
   };
 
   return (
@@ -193,7 +199,7 @@ export default function Pricing() {
                 variant={plan.popular ? "hero" : "outline"}
                 className="w-full"
                 disabled={plan.disabled}
-                onClick={() => handleUpgrade(plan.name)}
+                onClick={() => handleUpgrade(plan.name, price)}
               >
                 {plan.cta}
               </Button>
@@ -201,6 +207,14 @@ export default function Pricing() {
           );
         })}
       </div>
+
+      <QRPaymentDialog
+        open={qrOpen}
+        onOpenChange={setQrOpen}
+        planName={selectedPlan.name}
+        price={selectedPlan.price}
+        period={isYearly ? "year" : "month"}
+      />
 
       {/* FAQ */}
       <motion.div
