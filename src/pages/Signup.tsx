@@ -3,21 +3,51 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Mail, Lock, User, ArrowRight, Github } from "lucide-react";
+import { Sparkles, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { signUp, signIn } = useAuth();
   const [isLogin, setIsLogin] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.email || !form.password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+    setLoading(true);
+
+    if (isLogin) {
+      const { error } = await signIn(form.email, form.password);
+      if (error) {
+        toast.error(error.message);
+        setLoading(false);
+        return;
+      }
+      toast.success("Welcome back!");
+    } else {
+      const { error } = await signUp(form.email, form.password);
+      if (error) {
+        toast.error(error.message);
+        setLoading(false);
+        return;
+      }
+      toast.success("Check your email to verify your account!");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
     navigate("/dashboard");
   };
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Left branding panel */}
       <div className="hidden lg:flex w-1/2 gradient-hero items-center justify-center p-12">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -37,7 +67,6 @@ export default function Signup() {
         </motion.div>
       </div>
 
-      {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center p-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -55,24 +84,6 @@ export default function Signup() {
           <p className="text-muted-foreground mb-8">
             {isLogin ? "Sign in to continue building" : "Start building AI-powered websites for free"}
           </p>
-
-          <Button
-            variant="outline"
-            className="w-full mb-6 h-12 text-sm font-medium"
-            onClick={() => navigate("/dashboard")}
-          >
-            <Github className="h-4 w-4 mr-2" />
-            Continue with GitHub
-          </Button>
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-3 text-muted-foreground">or</span>
-            </div>
-          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
@@ -94,6 +105,7 @@ export default function Signup() {
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
                 className="pl-10 h-12"
+                required
               />
             </div>
             <div className="relative">
@@ -104,11 +116,13 @@ export default function Signup() {
                 value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
                 className="pl-10 h-12"
+                required
+                minLength={6}
               />
             </div>
 
-            <Button variant="hero" className="w-full h-12 text-base font-semibold" type="submit">
-              {isLogin ? "Sign In" : "Create Account"}
+            <Button variant="hero" className="w-full h-12 text-base font-semibold" type="submit" disabled={loading}>
+              {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </form>
