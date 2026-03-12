@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import QRPaymentDialog from "@/components/QRPaymentDialog";
 
 const plans = [
   {
