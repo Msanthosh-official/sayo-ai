@@ -199,7 +199,7 @@ export default function Pricing() {
                 variant={plan.popular ? "hero" : "outline"}
                 className="w-full"
                 disabled={plan.disabled}
-                onClick={() => handleUpgrade(plan.name)}
+                onClick={() => handleUpgrade(plan.name, price)}
               >
                 {plan.cta}
               </Button>
@@ -207,6 +207,14 @@ export default function Pricing() {
           );
         })}
       </div>
+
+      <QRPaymentDialog
+        open={qrOpen}
+        onOpenChange={setQrOpen}
+        planName={selectedPlan.name}
+        price={selectedPlan.price}
+        period={isYearly ? "year" : "month"}
+      />
 
       {/* FAQ */}
       <motion.div
