@@ -31,9 +31,7 @@ export function DashboardSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <div className={`p-4 flex items-center gap-2 ${collapsed ? "justify-center" : ""}`}>
-          <div className="h-8 w-8 rounded-lg gradient-hero flex items-center justify-center shrink-0">
-            <Zap className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src="/src/assets/sayo-logo.png" alt="Sayo.ai" className="h-8 w-auto" />
           {!collapsed && <span className="font-display font-bold text-lg text-foreground">Sayo.ai</span>}
         </div>
         <SidebarGroup>
