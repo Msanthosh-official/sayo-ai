@@ -179,10 +179,7 @@ export default function Landing() {
       <footer className="py-12 px-4 border-t border-border">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg gradient-hero flex items-center justify-center">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-display font-bold text-foreground">Sayo.ai</span>
+            <img src={logo} alt="Sayo.ai" className="h-7 w-auto" />
           </div>
           <p className="text-sm text-muted-foreground">© 2026 Sayo.ai. All rights reserved.</p>
           <div className="flex items-center gap-4">
