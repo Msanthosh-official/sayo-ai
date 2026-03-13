@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Zap, Code2, Rocket, GitBranch, Eye, Globe, ArrowRight, Github, Twitter, Sparkles, Check, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/use-theme";
+import logo from "@/assets/sayo-logo.png";
 
 const features = [
   { icon: Sparkles, title: "AI-Powered Generation", desc: "Describe your website in plain English and watch it come to life instantly." },
@@ -31,10 +32,7 @@ export default function Landing() {
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg gradient-hero flex items-center justify-center">
-              <Zap className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-display font-bold text-xl text-foreground">Sayo.ai</span>
+            <img src={logo} alt="Sayo.ai" className="h-8 w-auto" />
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
