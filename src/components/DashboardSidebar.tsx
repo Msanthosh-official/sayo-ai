@@ -1,4 +1,4 @@
-import { LayoutDashboard, FolderOpen, Sparkles, Palette, Rocket, Settings, Zap } from "lucide-react";
+import { LayoutDashboard, FolderOpen, Sparkles, Palette, Rocket, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
