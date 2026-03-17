@@ -1,6 +1,7 @@
 import { LayoutDashboard, FolderOpen, Sparkles, Palette, Rocket, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import logo from "@/assets/sayo-logo.png";
 import {
   Sidebar,
   SidebarContent,
