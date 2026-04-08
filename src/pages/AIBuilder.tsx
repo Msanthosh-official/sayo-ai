@@ -3,9 +3,10 @@ import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Play, Globe, Code2, Eye, Loader2, Copy, RotateCcw, Check, ExternalLink } from "lucide-react";
-import { generateMultiPageHTML } from "@/lib/generateHTML";
 import { toast } from "sonner";
 import { useProject } from "@/contexts/ProjectContext";
+import { supabase } from "@/integrations/supabase/client";
+import { generateMultiPageHTML } from "@/lib/generateHTML";
 
 export default function AIBuilder() {
   const location = useLocation();
@@ -19,34 +20,87 @@ export default function AIBuilder() {
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback(async () => {
     if (!prompt.trim()) return;
     setIsGenerating(true);
     setPages([]);
     setActivePage(0);
     setIsPublished(false);
     setPublishedUrl(null);
-    setTimeout(() => {
+    setGenerationProgress(0);
+
+    // Animate progress bar
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => Math.min(prev + 2, 90));
+    }, 300);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-website", {
+        body: { prompt, pageCount: 3 },
+      });
+
+      clearInterval(progressInterval);
+
+      if (error) {
+        console.error("Edge function error:", error);
+        // Fallback to local generation
+        toast.error("AI generation unavailable, using local generator", { description: error.message });
+        const generated = generateMultiPageHTML(prompt);
+        setPages(generated);
+        saveProject(generated);
+        return;
+      }
+
+      if (data?.error) {
+        toast.error(data.error);
+        // Fallback to local generation
+        const generated = generateMultiPageHTML(prompt);
+        setPages(generated);
+        saveProject(generated);
+        return;
+      }
+
+      const generated = data?.pages || [];
+      if (generated.length === 0) {
+        toast.error("No pages generated, using local generator");
+        const fallback = generateMultiPageHTML(prompt);
+        setPages(fallback);
+        saveProject(fallback);
+        return;
+      }
+
+      setGenerationProgress(100);
+      setPages(generated);
+      saveProject(generated);
+      toast.success(`Generated ${generated.length} page${generated.length > 1 ? "s" : ""} with AI!`);
+    } catch (err) {
+      clearInterval(progressInterval);
+      console.error("Generation error:", err);
+      toast.error("AI generation failed, using local generator");
       const generated = generateMultiPageHTML(prompt);
       setPages(generated);
+      saveProject(generated);
+    } finally {
       setIsGenerating(false);
-      
-      const project = {
-        id: Date.now().toString(),
-        name: prompt.slice(0, 40),
-        prompt,
-        html: generated[0]?.html || "",
-        pages: generated,
-        publishedUrl: null,
-        deployedUrl: null,
-        createdAt: new Date(),
-      };
-      setCurrentProject(project);
-      addProject(project);
-      toast.success(`Generated ${generated.length} page${generated.length > 1 ? "s" : ""}!`);
-    }, 2500);
+    }
   }, [prompt, setCurrentProject, addProject]);
+
+  const saveProject = (generated: { name: string; html: string }[]) => {
+    const project = {
+      id: Date.now().toString(),
+      name: prompt.slice(0, 40),
+      prompt,
+      html: generated[0]?.html || "",
+      pages: generated,
+      publishedUrl: null,
+      deployedUrl: null,
+      createdAt: new Date(),
+    };
+    setCurrentProject(project);
+    addProject(project);
+  };
 
   const handleReset = () => {
     setPages([]);
@@ -55,6 +109,7 @@ export default function AIBuilder() {
     setIsPublished(false);
     setPublishedUrl(null);
     setCurrentProject(null);
+    setGenerationProgress(0);
   };
 
   const handlePublish = useCallback(() => {
@@ -66,8 +121,6 @@ export default function AIBuilder() {
       setPublishedUrl(url);
       setIsPublished(true);
       setIsPublishing(false);
-      // Persist to project context
-      const projectId = Date.now().toString();
       const existingId = (window as any).__currentProjectId;
       if (existingId) {
         updateProject(existingId, { publishedUrl: url });
@@ -101,6 +154,7 @@ export default function AIBuilder() {
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="h-5 w-5 text-primary" />
           <h1 className="font-display font-bold text-xl text-foreground">AI Website Builder</h1>
+          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">Powered by AI</span>
         </div>
         <div className="flex gap-3">
           <textarea
@@ -191,9 +245,14 @@ export default function AIBuilder() {
                 <div className="h-16 w-16 rounded-2xl gradient-hero animate-pulse flex items-center justify-center">
                   <Sparkles className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <p className="text-muted-foreground font-medium">Generating your website...</p>
+                <p className="text-muted-foreground font-medium">AI is designing your website...</p>
+                <p className="text-xs text-muted-foreground">This may take 10-30 seconds</p>
                 <div className="w-48 h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div className="h-full gradient-hero rounded-full" initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: 2.5 }} />
+                  <motion.div
+                    className="h-full gradient-hero rounded-full"
+                    style={{ width: `${generationProgress}%` }}
+                    transition={{ duration: 0.3 }}
+                  />
                 </div>
               </motion.div>
             )}
@@ -220,7 +279,7 @@ export default function AIBuilder() {
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
                 <Sparkles className="h-12 w-12 mb-4 opacity-20" />
                 <p className="font-display font-medium text-lg">Enter a prompt to generate your website</p>
-                <p className="text-sm mt-1">Your live preview will appear here</p>
+                <p className="text-sm mt-1">AI will create a unique, production-ready design</p>
               </motion.div>
             )}
           </AnimatePresence>
