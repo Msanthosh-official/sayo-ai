@@ -37,28 +37,42 @@ export default function AIBuilder() {
     }, 300);
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-website", {
-        body: { prompt, pageCount: 3 },
-      });
+      let data: any = null;
+      let aiError = false;
+
+      try {
+        const result = await supabase.functions.invoke("generate-website", {
+          body: { prompt, pageCount: 3 },
+        });
+        data = result.data;
+        if (result.error) {
+          console.error("Edge function error:", result.error);
+          aiError = true;
+        }
+      } catch (invokeErr) {
+        console.error("Invoke failed:", invokeErr);
+        aiError = true;
+      }
 
       clearInterval(progressInterval);
 
-      if (error) {
-        console.error("Edge function error:", error);
-        // Fallback to local generation
-        toast.error("AI generation unavailable, using local generator", { description: error.message });
+      // Check for error in response body (e.g. 402, 429)
+      if (data?.error) {
+        const isCredits = data.error.includes("credits") || data.error.includes("402");
+        toast.error(isCredits ? "AI credits exhausted — using local generator" : data.error);
         const generated = generateMultiPageHTML(prompt);
         setPages(generated);
         saveProject(generated);
+        setGenerationProgress(100);
         return;
       }
 
-      if (data?.error) {
-        toast.error(data.error);
-        // Fallback to local generation
+      if (aiError || !data) {
+        toast.error("AI unavailable — using local generator");
         const generated = generateMultiPageHTML(prompt);
         setPages(generated);
         saveProject(generated);
+        setGenerationProgress(100);
         return;
       }
 
