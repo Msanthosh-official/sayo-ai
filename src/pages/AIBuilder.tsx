@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useProject } from "@/contexts/ProjectContext";
 import { supabase } from "@/integrations/supabase/client";
 import { generateMultiPageHTML } from "@/lib/generateHTML";
+import BuilderEditChat from "@/components/BuilderEditChat";
 
 export default function AIBuilder() {
   const location = useLocation();
@@ -191,112 +192,125 @@ export default function AIBuilder() {
         </div>
       </motion.div>
 
-      {/* Preview / Code Area */}
-      <div className="flex-1 rounded-2xl border border-border bg-card shadow-card overflow-hidden flex flex-col">
-        {/* Toolbar */}
-        <div className="h-12 border-b border-border flex items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-primary/40" />
-              <div className="w-3 h-3 rounded-full bg-secondary/60" />
-              <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
+      {/* Preview / Code Area + Edit Chat */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 min-h-0">
+        <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden flex flex-col min-h-0">
+          {/* Toolbar */}
+          <div className="h-12 border-b border-border flex items-center justify-between px-4">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-primary/40" />
+                <div className="w-3 h-3 rounded-full bg-secondary/60" />
+                <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
+              </div>
+              {generated && (
+                <div className="ml-3 flex items-center gap-1 text-xs text-muted-foreground bg-muted rounded-md px-2 py-1">
+                  <Globe className="h-3 w-3" />
+                  {publishedUrl || "preview.sayo.ai"}
+                </div>
+              )}
             </div>
             {generated && (
-              <div className="ml-3 flex items-center gap-1 text-xs text-muted-foreground bg-muted rounded-md px-2 py-1">
-                <Globe className="h-3 w-3" />
-                {publishedUrl || "preview.sayo.ai"}
+              <div className="flex items-center gap-2">
+                <Button variant={viewMode === "preview" ? "default" : "ghost"} size="sm" onClick={() => setViewMode("preview")}>
+                  <Eye className="h-3.5 w-3.5 mr-1" /> Preview
+                </Button>
+                <Button variant={viewMode === "code" ? "default" : "ghost"} size="sm" onClick={() => setViewMode("code")}>
+                  <Code2 className="h-3.5 w-3.5 mr-1" /> Code
+                </Button>
+                {isPublished ? (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    if (publishedUrl) { navigator.clipboard.writeText(publishedUrl); toast.success("URL copied!"); }
+                  }}>
+                    <Check className="h-3.5 w-3.5 mr-1 text-green-500" /> Published
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </Button>
+                ) : (
+                  <Button variant="hero" size="sm" onClick={handlePublish} disabled={isPublishing}>
+                    {isPublishing ? <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> Publishing...</> : <><Globe className="h-3.5 w-3.5 mr-1" /> Publish</>}
+                  </Button>
+                )}
               </div>
             )}
           </div>
-          {generated && (
-            <div className="flex items-center gap-2">
-              <Button variant={viewMode === "preview" ? "default" : "ghost"} size="sm" onClick={() => setViewMode("preview")}>
-                <Eye className="h-3.5 w-3.5 mr-1" /> Preview
-              </Button>
-              <Button variant={viewMode === "code" ? "default" : "ghost"} size="sm" onClick={() => setViewMode("code")}>
-                <Code2 className="h-3.5 w-3.5 mr-1" /> Code
-              </Button>
-              {isPublished ? (
-                <Button variant="outline" size="sm" onClick={() => {
-                  if (publishedUrl) { navigator.clipboard.writeText(publishedUrl); toast.success("URL copied!"); }
-                }}>
-                  <Check className="h-3.5 w-3.5 mr-1 text-green-500" /> Published
-                  <ExternalLink className="h-3 w-3 ml-1" />
-                </Button>
-              ) : (
-                <Button variant="hero" size="sm" onClick={handlePublish} disabled={isPublishing}>
-                  {isPublishing ? <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> Publishing...</> : <><Globe className="h-3.5 w-3.5 mr-1" /> Publish</>}
-                </Button>
-              )}
+
+          {/* Page tabs */}
+          {generated && pages.length > 1 && (
+            <div className="border-b border-border px-4 flex items-center gap-1 h-10 bg-muted/30 overflow-x-auto">
+              {pages.map((page, idx) => (
+                <button
+                  key={page.name}
+                  onClick={() => setActivePage(idx)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                    idx === activePage
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {page.name}
+                </button>
+              ))}
             </div>
           )}
+
+          {/* Content */}
+          <div className="flex-1 relative">
+            <AnimatePresence mode="wait">
+              {isGenerating && (
+                <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                  <div className="h-16 w-16 rounded-2xl gradient-hero animate-pulse flex items-center justify-center">
+                    <Sparkles className="h-8 w-8 text-primary-foreground" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">AI is designing your website...</p>
+                  <p className="text-xs text-muted-foreground">This may take 10-30 seconds</p>
+                  <div className="w-48 h-2 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full gradient-hero rounded-full"
+                      style={{ width: `${generationProgress}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {!isGenerating && generated && viewMode === "preview" && (
+                <motion.div key={`preview-${activePage}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">
+                  <iframe srcDoc={currentHTML!} className="w-full h-full border-0" title="Preview" sandbox="allow-scripts" />
+                </motion.div>
+              )}
+
+              {!isGenerating && generated && viewMode === "code" && (
+                <motion.div key={`code-${activePage}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full overflow-auto p-4">
+                  <div className="flex justify-end mb-2">
+                    <Button variant="ghost" size="sm" onClick={handleCopy}>
+                      {copied ? <Check className="h-3.5 w-3.5 mr-1 text-green-500" /> : <Copy className="h-3.5 w-3.5 mr-1" />}
+                      {copied ? "Copied!" : "Copy"}
+                    </Button>
+                  </div>
+                  <pre className="text-xs text-muted-foreground bg-muted p-4 rounded-xl overflow-auto font-mono">{currentHTML}</pre>
+                </motion.div>
+              )}
+
+              {!isGenerating && !generated && (
+                <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+                  <Sparkles className="h-12 w-12 mb-4 opacity-20" />
+                  <p className="font-display font-medium text-lg">Enter a prompt to generate your website</p>
+                  <p className="text-sm mt-1">AI will create a unique, production-ready design</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Page tabs */}
-        {generated && pages.length > 1 && (
-          <div className="border-b border-border px-4 flex items-center gap-1 h-10 bg-muted/30 overflow-x-auto">
-            {pages.map((page, idx) => (
-              <button
-                key={page.name}
-                onClick={() => setActivePage(idx)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
-                  idx === activePage
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                {page.name}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="flex-1 relative">
-          <AnimatePresence mode="wait">
-            {isGenerating && (
-              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                <div className="h-16 w-16 rounded-2xl gradient-hero animate-pulse flex items-center justify-center">
-                  <Sparkles className="h-8 w-8 text-primary-foreground" />
-                </div>
-                <p className="text-muted-foreground font-medium">AI is designing your website...</p>
-                <p className="text-xs text-muted-foreground">This may take 10-30 seconds</p>
-                <div className="w-48 h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full gradient-hero rounded-full"
-                    style={{ width: `${generationProgress}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </div>
-              </motion.div>
-            )}
-
-            {!isGenerating && generated && viewMode === "preview" && (
-              <motion.div key={`preview-${activePage}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">
-                <iframe srcDoc={currentHTML!} className="w-full h-full border-0" title="Preview" sandbox="allow-scripts" />
-              </motion.div>
-            )}
-
-            {!isGenerating && generated && viewMode === "code" && (
-              <motion.div key={`code-${activePage}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full overflow-auto p-4">
-                <div className="flex justify-end mb-2">
-                  <Button variant="ghost" size="sm" onClick={handleCopy}>
-                    {copied ? <Check className="h-3.5 w-3.5 mr-1 text-green-500" /> : <Copy className="h-3.5 w-3.5 mr-1" />}
-                    {copied ? "Copied!" : "Copy"}
-                  </Button>
-                </div>
-                <pre className="text-xs text-muted-foreground bg-muted p-4 rounded-xl overflow-auto font-mono">{currentHTML}</pre>
-              </motion.div>
-            )}
-
-            {!isGenerating && !generated && (
-              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                <Sparkles className="h-12 w-12 mb-4 opacity-20" />
-                <p className="font-display font-medium text-lg">Enter a prompt to generate your website</p>
-                <p className="text-sm mt-1">AI will create a unique, production-ready design</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Edit Chat side panel */}
+        <div className="rounded-2xl border border-border shadow-card overflow-hidden hidden lg:block">
+          <BuilderEditChat
+            html={currentHTML}
+            pageName={pages[activePage]?.name || "Home"}
+            onUpdate={(newHtml) => {
+              setPages(prev => prev.map((p, i) => i === activePage ? { ...p, html: newHtml } : p));
+            }}
+          />
         </div>
       </div>
     </div>
