@@ -25,19 +25,21 @@ export default function SupportChatWidget() {
     const text = input.trim();
     if (!text || loading) return;
     const userMsg: Msg = { role: "user", content: text };
-    setMessages(prev => [...prev, userMsg]);
+    const history = [...messages, userMsg];
+    setMessages(history);
     setInput("");
     setLoading(true);
 
+    // Add an empty assistant placeholder we'll progressively fill
+    setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
     let assistantSoFar = "";
-    const upsert = (chunk: string) => {
+    const appendChunk = (chunk: string) => {
       assistantSoFar += chunk;
       setMessages(prev => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant" && last.content !== messages[messages.length - 1]?.content) {
-          return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
-        }
-        return [...prev, { role: "assistant", content: assistantSoFar }];
+        const next = [...prev];
+        next[next.length - 1] = { role: "assistant", content: assistantSoFar };
+        return next;
       });
     };
 
@@ -48,14 +50,18 @@ export default function SupportChatWidget() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })) }),
+        body: JSON.stringify({ messages: history.map(m => ({ role: m.role, content: m.content })) }),
       });
 
       if (!resp.ok) {
         if (resp.status === 402) toast.error("AI credits exhausted");
         else if (resp.status === 429) toast.error("Too many requests. Try again shortly.");
         else toast.error("Chat error");
-        setLoading(false);
+        setMessages(prev => {
+          const next = [...prev];
+          next[next.length - 1] = { role: "assistant", content: "Sorry, I couldn't respond right now." };
+          return next;
+        });
         return;
       }
       if (!resp.body) throw new Error("no body");
@@ -63,24 +69,25 @@ export default function SupportChatWidget() {
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
-      let done = false;
+      let streamDone = false;
 
-      while (!done) {
-        const { done: d, value } = await reader.read();
-        if (d) break;
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
         buf += decoder.decode(value, { stream: true });
         let idx;
         while ((idx = buf.indexOf("\n")) !== -1) {
           let line = buf.slice(0, idx);
           buf = buf.slice(idx + 1);
           if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line || line.startsWith(":")) continue;
           if (!line.startsWith("data: ")) continue;
           const json = line.slice(6).trim();
-          if (json === "[DONE]") { done = true; break; }
+          if (json === "[DONE]") { streamDone = true; break; }
           try {
             const parsed = JSON.parse(json);
             const c = parsed.choices?.[0]?.delta?.content;
-            if (c) upsert(c);
+            if (c) appendChunk(c);
           } catch {
             buf = line + "\n" + buf;
             break;
@@ -143,17 +150,10 @@ export default function SupportChatWidget() {
                       ? "bg-primary text-primary-foreground rounded-br-sm"
                       : "bg-muted text-foreground rounded-bl-sm"
                   }`}>
-                    {m.content || (loading && i === messages.length - 1 ? "…" : "")}
+                    {m.content || (loading && i === messages.length - 1 ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "")}
                   </div>
                 </div>
               ))}
-              {loading && messages[messages.length - 1]?.role === "user" && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="border-t border-border p-3 flex gap-2">
