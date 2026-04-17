@@ -18,6 +18,7 @@ import DashboardSettings from "./pages/DashboardSettings";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import AdminPayments from "./pages/AdminPayments";
+import SupportChatWidget from "./components/SupportChatWidget";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <SupportChatWidget />
             </BrowserRouter>
           </TooltipProvider>
         </ProjectProvider>
